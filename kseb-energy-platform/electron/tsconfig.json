@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "target": "ES2021", // Updated target
+    "module": "commonjs",
+    "lib": ["ES2021", "DOM"], // Added DOM for things like AbortController if ever needed, though less common in main
+    "outDir": "../dist/electron", // Output to a common dist directory at root/dist/electron
+    "rootDir": ".", // Root of electron specific source is the electron folder itself
+    "baseUrl": ".", // Allows for path mapping if needed, e.g. "paths": { "@/*": ["./*"] }
+    "removeComments": true,
+    "isolatedModules": false, // main.ts and preload.ts are separate entry points but not strictly isolated modules
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": false, // Can be true if classes are used heavily and initialized in constructor
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true, // Align with common JS practices
+    "experimentalDecorators": true, // If you plan to use decorators
+    "emitDecoratorMetadata": true,  // If you plan to use decorators with reflection (e.g. TypeORM, InversifyJS)
+    "declaration": false, // No .d.ts declaration files needed for the final build of main/preload
+    "resolveJsonModule": true, // Allow importing JSON files
+    "sourceMap": true, // Generate source maps for easier debugging, even in production builds (can be stripped by builder)
+    "types": ["node", "electron"] // Specify type definitions to include
+  },
+  "include": [
+    "./**/*.ts" // Include all .ts files in the electron folder and its subdirectories
+  ],
+  "exclude": [
+    "node_modules",
+    "../dist", // Exclude the output directory itself
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ],
+  "compileOnSave": false // Relies on build scripts to trigger compilation
+}
