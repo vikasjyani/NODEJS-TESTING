@@ -1,0 +1,484 @@
+/* ===== LAYOUT-FIXES.CSS - Critical Layout and Functionality Fixes ===== */
+/* Note: Sidebar toggle functionality moved to common.css */
+
+/* ===== MAIN LAYOUT CONTAINER FIXES ===== */
+.content-area {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    padding: var(--spacing-md);
+}
+
+/* ===== CONTAINER AND WRAPPER FIXES ===== */
+.container-fluid {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    padding-left: var(--spacing-md) !important;
+    padding-right: var(--spacing-md) !important;
+    box-sizing: border-box;
+}
+
+.row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    overflow-x: hidden !important;
+    width: 100%;
+}
+
+.col,
+[class*="col-"] {
+    padding-left: var(--spacing-sm) !important;
+    padding-right: var(--spacing-sm) !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box;
+}
+
+/* ===== TABLE SIZING FIXES (REMOVED - Integrated into common.css) ===== */
+/* The styles formerly here have been merged into static/css/common.css
+   to provide better default table styling without excessive use of !important.
+   Key features like sticky headers, text wrapping in cells, consistent padding,
+   and responsive text alignment are now part of the general table rules in common.css.
+*/
+/* Original start of .table-responsive was here */
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--spacing-lg);
+    max-width: 100% !important;
+    width: 100% !important;
+    background: var(--neutral-0);
+    border: 1px solid var(--neutral-200);
+    box-sizing: border-box;
+}
+
+.table {
+    width: 100% !important;
+    max-width: none !important;
+    table-layout: auto !important;
+    border-collapse: collapse !important;
+    margin-bottom: 0 !important;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    min-width: 100% !important;
+}
+
+/* Ensure table headers are always visible and properly sized */
+.table thead th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+    background: var(--primary-gradient) !important;
+    color: var(--neutral-0) !important;
+    border-bottom: 2px solid var(--primary-600) !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    padding: 0.875rem 0.625rem !important;
+    min-width: 100px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    white-space: nowrap !important;
+}
+
+.table tbody td {
+    padding: 0.75rem 0.625rem !important;
+    border-bottom: 1px solid var(--neutral-200) !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    min-width: 80px !important;
+    max-width: 200px !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+}
+
+.table tbody tr:hover {
+    background: var(--primary-50) !important;
+}
+
+/* ===== CHART AND PLOT FIXES ===== */
+.plot-container,
+.chart-container,
+[id="Plot"],
+[id*="Chart"],
+[class*="chart-container"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: var(--neutral-0) !important;
+    border: 1px solid var(--neutral-200) !important;
+    border-radius: var(--radius-lg) !important;
+    padding: var(--spacing-lg) !important;
+    margin-bottom: var(--spacing-lg) !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+}
+
+/* Force chart content to respect container sizes */
+.plot-container > div,
+.chart-container > div,
+.plot-container canvas,
+.chart-container canvas {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 350px !important;
+    box-sizing: border-box !important;
+}
+
+/* Plotly specific fixes */
+.plotly-graph-div {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 400px !important;
+    box-sizing: border-box !important;
+}
+
+.plotly .main-svg {
+    width: 100% !important;
+    height: auto !important;
+}
+
+/* Chart.js specific fixes */
+.chartjs-render-monitor {
+    width: 100% !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+}
+
+/* ===== CARD AND CONTENT FIXES ===== */
+.card {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    margin-bottom: var(--spacing-lg) !important;
+}
+
+.card-body {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    padding: var(--spacing-lg) !important;
+    box-sizing: border-box !important;
+}
+
+/* ===== TAB CONTENT FIXES ===== */
+.nav-tabs {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: thin !important;
+    border-bottom: 2px solid var(--neutral-200) !important;
+    background: var(--neutral-100) !important;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+    padding: 0 var(--spacing-md) !important;
+}
+
+.nav-tabs .nav-link {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    min-width: 120px !important;
+    padding: 0.875rem 1.25rem !important;
+    margin-right: var(--spacing-sm) !important;
+    border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+    background: var(--neutral-200) !important;
+    border: 1px solid var(--neutral-300) !important;
+    border-bottom: none !important;
+    transition: all var(--transition-base) !important;
+}
+
+.nav-tabs .nav-link.active {
+    background: var(--neutral-0) !important;
+    color: var(--primary-600) !important;
+    border-color: var(--neutral-200) !important;
+    font-weight: 600 !important;
+}
+
+.tab-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    background: var(--neutral-0) !important;
+    border: 1px solid var(--neutral-200) !important;
+    border-top: none !important;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg) !important;
+}
+
+.tab-pane {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    padding: var(--spacing-lg) !important;
+    box-sizing: border-box !important;
+}
+
+/* ===== RESPONSIVE BREAKPOINT FIXES ===== */
+@media (max-width: 991px) {
+    .main-content {
+   
+        margin-left: var(--sidebar-width-collapsed) !important;
+        width: calc(100% - var(--sidebar-width-collapsed)) !important;
+    }
+    .top-bar {
+        /* ADD: Only top-bar gets repositioned */
+        margin-left: 10px !important;
+    }
+    .content-area {
+        padding: var(--spacing-sm) !important;
+    }
+
+    .plot-container,
+    .chart-container {
+        min-height: 250px !important;
+        max-height: 60vh !important;  /* NEW */
+        padding: var(--spacing-md) !important;
+    }
+
+    .table {
+        font-size: 0.7125rem !important;
+    }
+
+    .table thead th {
+        padding: 0.625rem 0.5rem !important;
+        min-width: 80px !important;
+        font-size: 0.8125rem !important;
+    }
+
+    .table tbody td {
+        padding: 0.5rem 0.375rem !important;
+        min-width: 60px !important;
+        font-size: 0.8125rem !important;
+    }
+
+    .nav-tabs .nav-link {
+        padding: 0.75rem 1rem !important;
+        font-size: 0.875rem !important;
+        min-width: 100px !important;
+    }
+
+    .container-fluid {
+        padding-left: var(--spacing-sm) !important;
+        padding-right: var(--spacing-sm) !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    .top-bar {
+        margin-left: 60px !important; /* Space for toggle button */
+    }
+    .content-area {
+        padding: var(--spacing-xs) !important;
+    }
+
+    .container-fluid {
+        padding-left: var(--spacing-xs) !important;
+        padding-right: var(--spacing-xs) !important;
+    }
+
+    .plot-container,
+    .chart-container {
+        min-height: 200px !important; /* Reduced */
+        max-height: 50vh !important;  /* NEW */
+        padding: var(--spacing-sm) !important;
+    }
+
+    .table-responsive {
+        border-radius: var(--radius-md) !important;
+        font-size: 0.75rem !important;
+    }
+
+    .table {
+        font-size: 0.75rem !important;
+        min-width: 500px !important;
+    }
+
+    .table thead th {
+        padding: 0.5rem 0.25rem !important;
+        font-size: 0.75rem !important;
+        min-width: 60px !important;
+    }
+
+    .table tbody td {
+        padding: 0.375rem 0.25rem !important;
+        font-size: 0.75rem !important;
+        min-width: 50px !important;
+        max-width: 120px !important;
+    }
+
+    .nav-tabs {
+        flex-direction: column !important;
+        white-space: normal !important;
+        padding: var(--spacing-sm) !important;
+    }
+
+    .nav-tabs .nav-link {
+        width: 100% !important;
+        margin-right: 0 !important;
+        margin-bottom: var(--spacing-xs) !important;
+        text-align: center !important;
+        min-width: auto !important;
+        border-radius: var(--radius-md) !important;
+    }
+
+    .nav-tabs .nav-link:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    .tab-content {
+        border-radius: var(--radius-lg) !important;
+        border-top: 1px solid var(--neutral-200) !important;
+        margin-top: var(--spacing-sm) !important;
+    }
+
+    .card-body {
+        padding: var(--spacing-md) !important;
+    }
+}
+
+@media (max-width: 575px) {
+    .main-content {
+   
+    }
+    
+    .plot-container,
+    .chart-container {
+        min-height: 250px !important;
+        padding: var(--spacing-xs) !important;
+    }
+
+    .table {
+        font-size: 0.6875rem !important;
+        min-width: 400px !important;
+    }
+
+    .table thead th {
+        padding: 0.375rem 0.125rem !important;
+        font-size: 0.6875rem !important;
+        min-width: 50px !important;
+    }
+
+    .table tbody td {
+        padding: 0.25rem 0.125rem !important;
+        font-size: 0.6875rem !important;
+        min-width: 40px !important;
+        max-width: 100px !important;
+    }
+
+    .card-body {
+        padding: var(--spacing-sm) !important;
+    }
+}
+
+/* ===== SCROLLBAR IMPROVEMENTS ===== */
+.table-responsive::-webkit-scrollbar,
+.nav-tabs::-webkit-scrollbar,
+.content-area::-webkit-scrollbar {
+    height: 8px !important;
+    width: 8px !important;
+}
+
+.table-responsive::-webkit-scrollbar-track,
+.nav-tabs::-webkit-scrollbar-track,
+.content-area::-webkit-scrollbar-track {
+    background: var(--neutral-100) !important;
+    border-radius: 4px !important;
+}
+
+.table-responsive::-webkit-scrollbar-thumb,
+.nav-tabs::-webkit-scrollbar-thumb,
+.content-area::-webkit-scrollbar-thumb {
+    background: var(--primary-300) !important;
+    border-radius: 4px !important;
+    border: 1px solid var(--neutral-100) !important;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover,
+.nav-tabs::-webkit-scrollbar-thumb:hover,
+.content-area::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-500) !important;
+}
+
+/* ===== FORCE OVERRIDES FOR STUBBORN ELEMENTS ===== */
+.js-plotly-plot,
+.plotly-graph-div .plotly {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 400px !important;
+}
+
+table[id="Table"],
+table.table {
+    table-layout: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+}
+
+div[id="Chart"],
+div[id*="Plot"],
+canvas[id*="Chart"] {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 300px !important;
+}
+
+/* =====VIEW CONTENT STYLES ===== */
+.view-content {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    box-sizing: border-box;
+}
+
+.view-content.active {
+    display: block;
+}
+
+/* ===== LOADING AND ERROR STATES ===== */
+.loading-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: var(--primary-500);
+    font-size: 1rem;
+}
+
+.loading-state i {
+    font-size: 2rem;
+    margin-right: var(--spacing-sm);
+    animation: spin 1s linear infinite;
+}
+
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: var(--error-600);
+    text-align: center;
+    padding: var(--spacing-lg);
+}
+
+.error-state i {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+    color: var(--error-500);
+}
+
+.error-state h5 {
+    color: var(--error-600);
+    margin-bottom: var(--spacing-sm);
+}
+
+.error-state p {
+    color: var(--neutral-600);
+    font-size: 0.875rem;
+}

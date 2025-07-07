@@ -1,0 +1,1163 @@
+/* ===== PYPSA_RESULTS.CSS - Complete PyPSA Results with Layout Fixes ===== */
+
+/* ===== SIDEBAR TOGGLE FIXES ===== */
+/* Ensure sidebar toggle is always visible */
+.sidebar-toggle-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 9999;
+    background: var(--primary-500);
+    color: var(--neutral-0);
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.sidebar-toggle-btn:hover {
+    background: var(--primary-600);
+    transform: scale(1.1);
+}
+
+/* When sidebar is hidden, show toggle button */
+.sidebar-collapsed .sidebar-toggle-btn {
+    left: 20px;
+    background: var(--secondary-500);
+}
+
+.sidebar-collapsed .sidebar-toggle-btn:hover {
+    background: var(--secondary-600);
+}
+
+/* ===== MAIN CONTAINER ===== */
+.pypsa-results-container {
+    max-width: 100%;
+    margin: 0;
+    padding: var(--spacing-md);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Adjust main content when sidebar is visible/hidden */
+.main-content {
+    margin-left: 280px;
+    transition: margin-left var(--transition-base);
+    width: calc(100% - 280px);
+    min-height: 100vh;
+    overflow-x: auto;
+}
+
+.sidebar-collapsed .main-content {
+    margin-left: 0;
+    width: 100%;
+}
+
+/* ===== RESPONSIVE LAYOUT FIXES ===== */
+@media (max-width: 1200px) {
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar-open .sidebar {
+        transform: translateX(0);
+    }
+}
+
+/* ===== NETWORK SELECTION SECTION ===== */
+.network-selection {
+    background: var(--neutral-0);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--neutral-200);
+    margin-bottom: var(--spacing-xl);
+}
+
+.network-selection .card-body {
+    padding: var(--spacing-xl);
+}
+
+.network-selection .row {
+    margin-bottom: var(--spacing-lg);
+}
+
+.network-selection .form-select {
+    border: 2px solid var(--neutral-300);
+    border-radius: var(--radius-md);
+    padding: 0.875rem;
+    font-size: 0.875rem;
+    transition: all var(--transition-base);
+    min-height: 50px;
+}
+
+.network-selection .form-select:focus {
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+.network-selection .form-select:disabled {
+    background: var(--neutral-100);
+    cursor: not-allowed;
+}
+
+/* ===== NETWORK INFO CONTAINER ===== */
+.network-info-container {
+    background: var(--info-50);
+    border: 1px solid var(--info-200);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+.network-info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--info-200);
+}
+
+.network-info-item:last-child {
+    border-bottom: none;
+}
+
+.network-info-label {
+    font-weight: 600;
+    color: var(--info-700);
+}
+
+.network-info-value {
+    color: var(--info-600);
+    font-family: var(--font-mono);
+}
+
+/* ===== NETWORK UPLOAD SECTION ===== */
+.network-upload-section {
+    background: var(--secondary-50);
+    border: 1px solid var(--secondary-200);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+.network-upload-section h5 {
+    color: var(--secondary-700);
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.network-upload-section .input-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.network-upload-section .input-group-text {
+    background: var(--secondary-100);
+    border-color: var(--secondary-300);
+    color: var(--secondary-700);
+}
+
+.network-upload-section .form-control {
+    border-color: var(--secondary-300);
+}
+
+.network-upload-section .form-control:focus {
+    border-color: var(--secondary-500);
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+}
+
+/* ===== ANALYSIS DASHBOARD ===== */
+.analysis-dashboard {
+    background: var(--neutral-0);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--neutral-200);
+    margin-bottom: var(--spacing-xl);
+    overflow: hidden;
+}
+
+.analysis-dashboard .card-header {
+    background: var(--primary-gradient);
+    color: var(--neutral-0);
+    padding: var(--spacing-xl);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.analysis-dashboard .card-header h3 {
+    margin: 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.analysis-controls {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+/* ===== PERIOD CONTROL ===== */
+#periodControlContainer {
+    background: var(--warning-50);
+    border: 1px solid var(--warning-200);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+#periodControlContainer .d-flex {
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+#periodSelect {
+    min-width: 200px;
+    border: 2px solid var(--warning-300);
+    border-radius: var(--radius-md);
+}
+
+#periodSelect:focus {
+    border-color: var(--warning-500);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+#extractPeriodBtn {
+    background: var(--warning-500);
+    color: var(--neutral-0);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    transition: all var(--transition-base);
+}
+
+#extractPeriodBtn:hover {
+    background: var(--warning-600);
+}
+
+/* ===== DATE FILTER CONTAINER ===== */
+#dateFilterContainer {
+    background: var(--info-50);
+    border: 1px solid var(--info-200);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+#dateFilterContainer .row {
+    align-items: end;
+    gap: var(--spacing-md);
+}
+
+#dateFilterContainer .form-control,
+#dateFilterContainer .form-select {
+    border: 2px solid var(--info-300);
+    border-radius: var(--radius-md);
+    min-height: 44px;
+}
+
+#dateFilterContainer .form-control:focus,
+#dateFilterContainer .form-select:focus {
+    border-color: var(--info-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+#applyFilterBtn {
+    background: var(--info-500);
+    color: var(--neutral-0);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    min-height: 44px;
+}
+
+#applyFilterBtn:hover {
+    background: var(--info-600);
+}
+
+/* ===== ANALYSIS TABS ===== */
+.nav-tabs {
+    border-bottom: 3px solid var(--neutral-200);
+    background: var(--neutral-100);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 0 var(--spacing-lg);
+    margin-bottom: 0;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.nav-tabs .nav-item {
+    margin-bottom: -3px;
+    flex-shrink: 0;
+}
+
+.nav-tabs .nav-link {
+    background: var(--neutral-200);
+    border: 1px solid var(--neutral-300);
+    border-bottom: none;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    color: var(--neutral-600);
+    padding: 1rem 1.5rem;
+    font-weight: 500;
+    margin-right: var(--spacing-sm);
+    transition: all var(--transition-base);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    min-width: 120px;
+    justify-content: center;
+}
+
+.nav-tabs .nav-link:hover {
+    background: var(--neutral-0);
+    color: var(--primary-600);
+    border-color: var(--neutral-200);
+    transform: translateY(-2px);
+}
+
+.nav-tabs .nav-link.active {
+    background: var(--neutral-0);
+    color: var(--primary-600);
+    border-color: var(--neutral-200);
+    font-weight: 600;
+    z-index: 1;
+}
+
+.nav-tabs .nav-link i {
+    font-size: 1rem;
+}
+
+/* ===== TAB CONTENT ===== */
+.tab-content {
+    background: var(--neutral-0);
+    border: 1px solid var(--neutral-200);
+    border-top: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    min-height: 600px;
+    overflow: hidden;
+}
+
+.tab-pane {
+    padding: var(--spacing-xl);
+    min-height: 560px;
+    overflow-x: auto;
+}
+
+/* ===== CHART CONTAINERS - MAJOR FIXES ===== */
+.plot-container {
+    background: var(--neutral-0);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    min-height: 300px; /* Reduced from 500px */
+    max-height: 65vh; /* NEW */
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Ensure Plotly charts are properly sized */
+.plot-container > div {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 400px !important;
+}
+
+.plot-container .plotly {
+    width: 100% !important;
+    height: auto !important;
+}
+
+.plot-container canvas {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* Specific chart containers */
+#dispatchStackPlot,
+#dailyProfilePlot,
+#loadDurationPlot,
+#capacityByCarrierPlot,
+#capacityByRegionPlot,
+#newCapacityAdditionsPlot,
+#cufPlot,
+#curtailmentPlot,
+#socPlot,
+#storageUtilizationPlot,
+#emissionsByCarrierPlot,
+#avgPriceByBusPlot,
+#priceDurationPlot,
+#lineLoadingPlot {
+    min-height: 300px;
+    width: 100%;
+    overflow: visible;
+}
+
+/* ===== TABLE FIXES - MAJOR IMPROVEMENTS ===== */
+.table-responsive {
+    overflow-x: auto;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--spacing-lg);
+    max-width: 100%;
+    width: 100%;
+}
+
+.table {
+    width: 100%;
+    background: var(--neutral-0);
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    margin-bottom: 0;
+    table-layout: auto;
+    min-width: 600px; /* Ensures table doesn't get too cramped */
+}
+
+.table thead th {
+    background: var(--primary-gradient);
+    color: var(--neutral-0);
+    border-bottom: 2px solid var(--primary-600);
+    font-weight: 600;
+    text-align: center;
+    padding: 1rem 0.75rem;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    min-width: 100px;
+}
+
+.table tbody td {
+    padding: 0.875rem 0.75rem;
+    border-bottom: 1px solid var(--neutral-200);
+    text-align: center;
+    vertical-align: middle;
+    word-wrap: break-word;
+    max-width: 200px;
+}
+
+.table tbody tr:hover {
+    background: var(--primary-50);
+}
+
+.table tbody tr:nth-child(even) {
+    background: var(--neutral-50);
+}
+
+.table tbody tr:nth-child(even):hover {
+    background: var(--primary-50);
+}
+
+/* Specific table improvements */
+#generationSummaryTable,
+#capacityTable,
+#newCapacityAdditionsTable,
+#cufTable,
+#curtailmentTable,
+#storageUtilizationTable,
+#emissionsTable,
+#priceTable,
+#lineLoadingTable {
+    width: 100%;
+    table-layout: auto;
+}
+
+/* ===== STATS CARDS ===== */
+.stats-card {
+    background: var(--neutral-0);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-base);
+    margin-bottom: var(--spacing-md);
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stats-card.large {
+    padding: var(--spacing-xl);
+}
+
+.stats-label {
+    color: var(--neutral-600);
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+}
+
+.stats-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-600);
+    line-height: 1;
+    margin-bottom: var(--spacing-xs);
+    display: block;
+}
+
+.stats-unit {
+    color: var(--neutral-500);
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: block;
+}
+
+/* ===== CHART CONTROLS ===== */
+.chart-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.download-btn {
+    background: var(--success-500);
+    color: var(--neutral-0);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.download-btn:hover {
+    background: var(--success-600);
+    transform: translateY(-1px);
+}
+
+/* ===== LOADING INDICATORS ===== */
+.loading-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    color: var(--primary-500);
+    font-size: 1rem;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.loading-indicator i {
+    font-size: 2.5rem;
+    animation: spin 1.5s linear infinite;
+}
+
+/* ===== EMISSIONS SUMMARY ===== */
+.emissions-summary {
+    background: var(--neutral-50);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.total-emissions {
+    margin-bottom: var(--spacing-lg);
+}
+
+.emissions-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--error-600);
+    display: block;
+    line-height: 1;
+}
+
+.emissions-unit {
+    color: var(--neutral-600);
+    font-size: 1rem;
+    font-weight: 500;
+    display: block;
+    margin-top: var(--spacing-sm);
+}
+
+.emissions-converted .emissions-value {
+    font-size: 1.75rem;
+    color: var(--neutral-700);
+}
+
+/* ===== PRICE DATA CONTAINERS ===== */
+.price-data-container {
+    min-height: 400px;
+}
+
+.no-price-data-container {
+    background: var(--neutral-50);
+    border: 2px dashed var(--neutral-300);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-2xl);
+    text-align: center;
+    color: var(--neutral-500);
+}
+
+.no-price-data-container i {
+    color: var(--neutral-400);
+    margin-bottom: var(--spacing-lg);
+}
+
+.no-price-data-container h4 {
+    color: var(--neutral-600);
+    margin-bottom: var(--spacing-md);
+}
+
+.no-price-data-container p {
+    color: var(--neutral-500);
+    font-size: 0.875rem;
+}
+
+/* ===== NETWORK COMPARISON ===== */
+.network-comparison {
+    background: var(--neutral-0);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--neutral-200);
+    margin-bottom: var(--spacing-xl);
+}
+
+.network-comparison .card-header {
+    background: var(--secondary-gradient);
+    color: var(--neutral-0);
+    padding: var(--spacing-xl);
+}
+
+.network-comparison .card-body {
+    padding: var(--spacing-xl);
+}
+
+.network-select-container {
+    background: var(--secondary-50);
+    border: 1px solid var(--secondary-200);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.network-select-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--neutral-0);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-sm);
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.network-select-item:hover {
+    background: var(--secondary-100);
+    border-color: var(--secondary-300);
+}
+
+.network-select-item.selected {
+    background: var(--secondary-200);
+    border-color: var(--secondary-400);
+}
+
+.network-select-item input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: var(--secondary-500);
+}
+
+/* ===== COMPARISON RESULTS ===== */
+.comparison-results {
+    margin-top: var(--spacing-xl);
+}
+
+#comparisonMainPlot,
+#comparisonSecondaryPlot {
+    min-height: 500px;
+    width: 100%;
+    overflow: visible;
+}
+
+/* ===== PERIOD EXTRACTION MODAL ===== */
+.modal-dialog-centered {
+    display: flex;
+    align-items: center;
+    min-height: calc(100% - 1rem);
+}
+
+.modal-content {
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-xl);
+}
+
+.modal-header {
+    background: var(--success-gradient);
+    color: var(--neutral-0);
+    padding: var(--spacing-xl);
+}
+
+.modal-body {
+    padding: var(--spacing-xl);
+    text-align: center;
+}
+
+.modal-footer {
+    background: var(--neutral-50);
+    border-top: 1px solid var(--neutral-200);
+    padding: var(--spacing-xl);
+}
+
+#extractedPeriodFilePath {
+    font-family: var(--font-mono);
+    background: var(--neutral-100);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    word-break: break-all;
+}
+
+/* ===== RESPONSIVE FIXES ===== */
+
+/* Large screens - optimize space usage */
+@media (min-width: 1400px) {
+    .pypsa-results-container {
+        padding: var(--spacing-lg);
+    }
+    
+    .plot-container {
+        min-height: 600px;
+    }
+    
+    #dispatchStackPlot {
+        min-height: 700px;
+    }
+}
+
+/* Tablet styles */
+@media (max-width: 992px) {
+    .analysis-dashboard .card-header {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-lg);
+    }
+    
+    .analysis-controls {
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .nav-tabs {
+        padding: var(--spacing-sm);
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 0.875rem 1rem;
+        font-size: 0.875rem;
+        min-width: 100px;
+    }
+    
+    .tab-pane {
+        padding: var(--spacing-lg);
+    }
+    
+    .plot-container {
+        min-height: 400px;
+        padding: var(--spacing-md);
+    }
+    
+    .table thead th {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8125rem;
+    }
+    
+    .table tbody td {
+        padding: 0.625rem 0.5rem;
+        font-size: 0.8125rem;
+    }
+    
+    .stats-value {
+        font-size: 1.75rem;
+    }
+    
+    #dateFilterContainer .row {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    #periodControlContainer .d-flex {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    #periodSelect {
+        min-width: 100%;
+        margin-bottom: var(--spacing-md);
+    }
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+    .sidebar-toggle-btn {
+        top: 15px;
+        left: 15px;
+        width: 45px;
+        height: 45px;
+    }
+    
+    .pypsa-results-container {
+        padding: var(--spacing-sm);
+    }
+    
+    .network-selection .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .network-selection .row {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .analysis-dashboard .card-header {
+        padding: var(--spacing-md);
+    }
+    
+    .nav-tabs {
+        flex-direction: column;
+        padding: var(--spacing-sm);
+        background: var(--neutral-0);
+        border-radius: var(--radius-lg);
+        border-bottom: 1px solid var(--neutral-200);
+    }
+    
+    .nav-tabs .nav-link {
+        margin-right: 0;
+        margin-bottom: var(--spacing-xs);
+        border-radius: var(--radius-md);
+        text-align: center;
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .nav-tabs .nav-link:last-child {
+        margin-bottom: 0;
+    }
+    
+    .tab-content {
+        border-radius: var(--radius-lg);
+        border-top: 1px solid var(--neutral-200);
+        margin-top: var(--spacing-md);
+    }
+    
+    .tab-pane {
+        padding: var(--spacing-md);
+    }
+    
+    .plot-container {
+        min-height: 350px;
+        padding: var(--spacing-sm);
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .table {
+        min-width: 500px;
+        font-size: 0.75rem;
+    }
+    
+    .table thead th {
+        padding: 0.5rem 0.375rem;
+        font-size: 0.75rem;
+    }
+    
+    .table tbody td {
+        padding: 0.5rem 0.375rem;
+        font-size: 0.75rem;
+    }
+    
+    .stats-card {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .stats-value {
+        font-size: 1.5rem;
+    }
+    
+    .emissions-value {
+        font-size: 2rem;
+    }
+    
+    .emissions-converted .emissions-value {
+        font-size: 1.5rem;
+    }
+    
+    .chart-controls {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .download-btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+    }
+    
+    .network-comparison .card-body,
+    .comparison-results {
+        padding: var(--spacing-md);
+    }
+    
+    .modal-dialog {
+        margin: var(--spacing-sm);
+        max-width: calc(100% - 2rem);
+    }
+    
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: var(--spacing-md);
+    }
+}
+
+/* Small mobile */
+@media (max-width: 576px) {
+    .sidebar-toggle-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8125rem;
+    }
+    
+    .plot-container {
+        min-height: 300px;
+        padding: var(--spacing-xs);
+    }
+    
+    .table {
+        min-width: 400px;
+        font-size: 0.6875rem;
+    }
+    
+    .stats-value {
+        font-size: 1.25rem;
+    }
+    
+    .emissions-value {
+        font-size: 1.75rem;
+    }
+    
+    .download-btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    .sidebar,
+    .sidebar-toggle-btn,
+    .nav-tabs,
+    .chart-controls,
+    .analysis-controls,
+    .download-btn,
+    .modal {
+        display: none !important;
+    }
+    
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+    
+    .tab-content {
+        border: none !important;
+        border-radius: 0 !important;
+    }
+    
+    .tab-pane {
+        display: block !important;
+        padding: 0 !important;
+        page-break-before: always;
+    }
+    
+    .tab-pane:first-child {
+        page-break-before: auto;
+    }
+    
+    .plot-container {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid var(--neutral-400) !important;
+    }
+    
+    .table-responsive {
+        overflow: visible !important;
+        break-inside: avoid;
+    }
+    
+    .stats-card {
+        break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid var(--neutral-400) !important;
+    }
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+.nav-tabs .nav-link:focus {
+    outline: 2px solid var(--primary-500);
+    outline-offset: 2px;
+}
+
+.download-btn:focus {
+    outline: 2px solid var(--success-500);
+    outline-offset: 2px;
+}
+
+.network-select-item:focus {
+    outline: 2px solid var(--secondary-500);
+    outline-offset: 2px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .plot-container,
+    .table-responsive,
+    .stats-card {
+        border-width: 2px;
+    }
+    
+    .nav-tabs .nav-link {
+        border-width: 2px;
+    }
+    
+    .nav-tabs .nav-link.active {
+        border-width: 3px;
+    }
+}
+
+/* ===== SCROLLBAR STYLES ===== */
+.table-responsive::-webkit-scrollbar,
+.network-select-container::-webkit-scrollbar,
+.nav-tabs::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track,
+.network-select-container::-webkit-scrollbar-track,
+.nav-tabs::-webkit-scrollbar-track {
+    background: var(--neutral-100);
+}
+
+.table-responsive::-webkit-scrollbar-thumb,
+.network-select-container::-webkit-scrollbar-thumb,
+.nav-tabs::-webkit-scrollbar-thumb {
+    background: var(--primary-300);
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover,
+.network-select-container::-webkit-scrollbar-thumb:hover,
+.nav-tabs::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-500);
+}
+
+/* =====ANIMATIONS ===== */
+.plot-container {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.stats-card {
+    animation: slideInLeft 0.3s ease-out;
+}
+
+.table-responsive {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    .plot-container,
+    .stats-card,
+    .table-responsive {
+        animation: none;
+    }
+    
+    .stats-card:hover,
+    .download-btn:hover,
+    .nav-tabs .nav-link:hover {
+        transform: none;
+    }
+}

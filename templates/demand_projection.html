@@ -1,0 +1,1003 @@
+{% extends "sidebar_layout.html" %}
+
+{% block title %}Demand Projection Analysis{% endblock %}
+
+{% block additional_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/utilities.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/layout-fixes.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar-layout.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/demand_projection.css') }}">
+
+<!--Styles for Configuration Management -->
+
+{% endblock %}
+
+{% block page_header_title %}
+Demand Projection Analysis
+{% endblock %}
+
+{% block page_header_subtitle %}
+{% if current_project %}{{ current_project }}{% else %}Energy Demand Forecasting & Analysis{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="demand-projection-container">
+    <!--Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ ('info' if category == 'message' else category) }} alert-dismissible fade show" role="alert">
+        <i class="fas {% if category == 'success' %}fa-check-circle{% elif category == 'danger' %}fa-exclamation-triangle{% elif category == 'warning' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %} me-2"></i>
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <!--Data Quality Indicator -->
+    {% if data_summary and data_summary.get('data_available') %}
+    <div class="card mb-3 data-quality-card">
+        <div class="card-body py-2">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-database me-2 text-primary"></i>
+                        <strong>Data Quality:</strong>
+                        <span class="ms-2 badge bg-success">Good</span>
+                        <small class="text-muted ms-2">
+                            {{ sectors|length }} sectors available for forecasting
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <small class="text-muted">
+                        <i class="fas fa-clock me-1"></i>
+                        Last updated: {{ 'now' | strftime('%Y-%m-%d %H:%M') }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!--Sector Navigation -->
+    <nav class="sector-nav" aria-label="Sector selection">
+      
+ 
+            <button class="sector-button active" data-sector="aggregated" type="button">
+                <i class="fas fa-layer-group me-2"></i>
+                <span>Consolidated View</span>
+                <span class="sector-status-badge bg-success"></span>
+            </button>
+            {% for sector in sectors %}
+            <button class="sector-button" data-sector="{{ sector }}" type="button">
+                <i class="fas fa-industry me-2"></i>
+                <span>{{ sector | title }}</span>
+                <span class="sector-status-badge bg-success"></span>
+            </button>
+            {% endfor %}
+        
+    </nav>
+
+    <div class="content-wrapper">
+        <!-- Aggregated Section -->
+        <div id="aggregated-section" class="sector-section active">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3><i class="fas fa-layer-group me-2"></i>Consolidated Electricity Demand</h3>
+                        <div class="card-header-actions">
+                            <button class="btn btn-sm btn-outline-primary" onclick="exportSectorData('aggregated')" title="Export Data">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="refreshSectorData('aggregated')" title="Refresh">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="view-toggle" role="tablist" aria-label="Aggregated data views">
+                        <button class="view-toggle-button active" data-view="table" data-sector="aggregated"
+                            type="button" role="tab" aria-selected="true" aria-controls="aggregated-table-view">
+                            <i class="fas fa-table"></i>Data Table
+                        </button>
+                        <button class="view-toggle-button" data-view="chart" data-sector="aggregated" type="button"
+                            role="tab" aria-selected="false" aria-controls="aggregated-chart-view">
+                            <i class="fas fa-chart-area"></i>Visualization
+                        </button>
+                        <button class="view-toggle-button" data-view="summary" data-sector="aggregated" type="button"
+                            role="tab" aria-selected="false" aria-controls="aggregated-summary-view">
+                            <i class="fas fa-chart-pie"></i>Summary
+                        </button>
+                    </div>
+
+                    <div id="aggregated-table-view" class="view-content active" role="tabpanel">
+                        <div class="table-container">
+                            {% if aggregated_table %}
+                            {{ aggregated_table | safe }}
+                            {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-table text-muted" style="font-size: 48px;"></i>
+                                <h5 class="mt-3 text-muted">No aggregated data available</h5>
+                                <p class="text-muted">Please load input data first to view consolidated electricity demand.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div id="aggregated-chart-view" class="view-content" role="tabpanel" style="display: none;">
+                        <div class="chart-container" id="aggregatedChartContainer">
+                            <div class="chart-controls mb-3">
+                                <div class="btn-group btn-group-sm mb-3"
+     style="display:inline-flex; height:auto; align-items:center;"
+     role="group" aria-label="Chart type selection">
+                                    <input type="radio" class="btn-check" name="aggregatedChartType" id="chartLine" value="line" checked>
+                                    <label class="btn btn-outline-primary" for="chartLine"><i class="fas fa-chart-line me-1"></i>Line</label>
+                                    <input type="radio" class="btn-check" name="aggregatedChartType" id="chartArea" value="area">
+                                    <label class="btn btn-outline-primary" for="chartArea"><i class="fas fa-chart-area me-1"></i>Area</label>
+                                    <input type="radio" class="btn-check" name="aggregatedChartType" id="chartBar" value="bar">
+                                    <label class="btn btn-outline-primary" for="chartBar"><i class="fas fa-chart-bar me-1"></i>Bar</label>
+                                </div>
+                            </div>
+                            <div class="loading-spinner" id="aggregatedChartSpinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Loading visualization...</span>
+                            </div>
+                            <canvas id="aggregatedChart" style="display: none;"></canvas>
+                            <div class="chart-error" id="aggregatedChartError" style="display: none;"></div>
+                        </div>
+                    </div>
+
+                    <div id="aggregated-summary-view" class="view-content" role="tabpanel" style="display: none;">
+                        <div id="aggregatedSummaryContainer">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Loading summary...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Individual Sector Sections -->
+        {% for sector in sectors %}
+        <div id="{{ sector }}-section" class="sector-section">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3><i class="fas fa-industry me-2"></i>{{ sector | title }} Sector</h3>
+                        <div class="card-header-actions">
+                            <button class="btn btn-sm btn-outline-success forecast-btn" data-sector="{{ sector }}" type="button">
+                                <i class="fas fa-cogs"></i>Configure Forecast
+                            </button>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="exportSectorData('{{ sector }}')" title="Export Data">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="refreshSectorData('{{ sector }}')" title="Refresh">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="view-toggle" role="tablist" aria-label="{{sector | title}} data views">
+                        <button class="view-toggle-button active" data-view="table" data-sector="{{ sector }}"
+                            type="button" role="tab" aria-selected="true" aria-controls="{{sector}}-table-view">
+                            <i class="fas fa-table"></i>Data Table
+                        </button>
+                        <button class="view-toggle-button" data-view="chart" data-sector="{{ sector }}" type="button"
+                            role="tab" aria-selected="false" aria-controls="{{sector}}-chart-view">
+                            <i class="fas fa-chart-line"></i>Time Series
+                        </button>
+                        <button class="view-toggle-button" data-view="correlation" data-sector="{{ sector }}"
+                            type="button" role="tab" aria-selected="false" aria-controls="{{sector}}-correlation-view">
+                            <i class="fas fa-project-diagram"></i>Correlations
+                        </button>
+                        <button class="view-toggle-button" data-view="analysis" data-sector="{{ sector }}"
+                            type="button" role="tab" aria-selected="false" aria-controls="{{sector}}-analysis-view">
+                            <i class="fas fa-analytics"></i>Analysis
+                        </button>
+                        <button class="view-toggle-button" data-view="summary" data-sector="{{ sector }}"
+                            type="button" role="tab" aria-selected="false" aria-controls="{{sector}}-summary-view">
+                            <i class="fas fa-chart-pie"></i>Summary
+                        </button>
+                    </div>
+
+                    <div id="{{ sector }}-table-view" class="view-content active" role="tabpanel">
+                        <h4>{{ sector | title }} - Historical Data & Drivers</h4>
+                        <div class="table-container">
+                            {% if sector_tables and sector_tables[sector] %}
+                            {{ sector_tables[sector] | safe }}
+                            {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-database text-muted" style="font-size: 48px;"></i>
+                                <h5 class="mt-3 text-muted">No data available for {{ sector | title }}</h5>
+                                <p class="text-muted">Please upload sector data to view historical information.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div id="{{ sector }}-chart-view" class="view-content" role="tabpanel" style="display: none;">
+                        <h4>{{ sector | title }} - Demand Time Series</h4>
+                        <div class="chart-container" id="{{sector}}ChartContainer">
+                            <div class="chart-controls mb-3">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="btn-group btn-group-sm" role="group" aria-label="Chart options">
+                                            <button type="button" class="btn btn-outline-primary" onclick="toggleTrendLine('{{sector}}')">
+                                                <i class="fas fa-chart-line me-1"></i>Trend Line
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" onclick="toggleDataPoints('{{sector}}')">
+                                                <i class="fas fa-circle me-1"></i>Data Points
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" onclick="downloadChart('{{sector}}')" title="Download Chart">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary" onclick="fullscreenChart('{{sector}}')" title="Fullscreen">
+                                                <i class="fas fa-expand"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="loading-spinner" id="{{sector}}ChartSpinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Loading chart...</span>
+                            </div>
+                            <canvas id="{{sector}}Chart" style="display: none;"></canvas>
+                            <div class="chart-error" id="{{sector}}ChartError" style="display: none;"></div>
+                        </div>
+                    </div>
+
+                    <div id="{{ sector }}-correlation-view" class="view-content" role="tabpanel" style="display: none;">
+                        <h4>{{ sector | title }} - Variable Correlations</h4>
+                        <div class="chart-container" id="{{sector}}CorrelationChartContainer">
+                            <div class="correlation-controls mb-3">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="btn-group btn-group-sm" role="group" aria-label="Correlation view">
+                                            <input type="radio" class="btn-check" name="correlationView{{sector}}" id="corrTable{{sector}}" value="table" checked>
+                                            <label class="btn btn-outline-primary" for="corrTable{{sector}}"><i class="fas fa-table me-1"></i>Table</label>
+                                            <input type="radio" class="btn-check" name="correlationView{{sector}}" id="corrChart{{sector}}" value="chart">
+                                            <label class="btn btn-outline-primary" for="corrChart{{sector}}"><i class="fas fa-chart-bar me-1"></i>Chart</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <button class="btn btn-sm btn-outline-info" onclick="showCorrelationHelp()" title="Help">
+                                            <i class="fas fa-question-circle"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="loading-spinner" id="{{sector}}CorrelationSpinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Loading correlation analysis...</span>
+                            </div>
+                            <div id="{{sector}}CorrelationChart" style="display: none;"></div>
+                            <div class="chart-error" id="{{sector}}CorrelationError" style="display: none;"></div>
+                        </div>
+                    </div>
+
+                    <div id="{{ sector }}-analysis-view" class="view-content" role="tabpanel" style="display: none;">
+                        <h4>{{ sector | title }} - Data Analysis</h4>
+                        <div id="{{sector}}AnalysisContainer">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Loading analysis...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="{{ sector }}-summary-view" class="view-content" role="tabpanel" style="display: none;">
+                        <h4>{{ sector | title }} - Data Summary</h4>
+                        <div id="{{sector}}SummaryContainer">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Loading summary...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!--Missing Sectors Alert -->
+        {% if missing_sectors %}
+        <div class="alert alert-warning">
+            <div class="d-flex align-items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h5 class="alert-heading">Missing Sector Data</h5>
+                    <p>The following sectors are configured but no data was found in the input file:</p>
+                    <div class="row">
+                        {% for sector_name in missing_sectors %}
+                        <div class="col-md-6 col-lg-4 mb-1">
+                            <span class="badge bg-warning text-dark">{{ sector_name | title }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <hr>
+                    <p class="mb-0">
+                        <strong>Recommendation:</strong> Verify your input data file contains these sectors if they are required for analysis.
+                        <a href="/data_management" class="alert-link">Manage Data Files</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!--Forecast Action Section -->
+<div class="forecast-action-container">
+    <div class="card bg-primary text-white">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="forecast-action-header">
+                        <h3><i class="fas fa-chart-line me-2"></i>Advanced Demand Forecasting</h3>
+                        <p class="mb-0">Configure and execute state-of-the-art forecasting models for all sectors with complete parameter customization and configuration tracking</p>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-light btn-lg run-forecast-btn" type="button">
+                        <i class="fas fa-play me-2"></i>Configure Forecast Models
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer bg-primary border-0">
+            <small class="text-light">
+                <i class="fas fa-info-circle me-1"></i>
+                Available models: Multiple Linear Regression (MLR), Simple Linear Regression (SLR), 
+                Weighted Average Method (WAM), and Time Series Analysis with complete configuration saving
+            </small>
+        </div>
+    </div>
+</div>
+
+<!--Forecast Configuration Modal -->
+<div class="modal fade" id="forecastConfigModal" tabindex="-1" aria-labelledby="forecastConfigModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="forecastConfigModalLabel">
+                    <i class="fas fa-cogs me-2"></i>Advanced Forecast Model Configuration
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="forecastConfigForm">
+                    <!--General Settings -->
+                    <div class="-form-section">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-sliders-h me-2"></i>General Configuration</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="scenarioName" class="form-label">Scenario Name *</label>
+                                        <input type="text" class="form-control" id="scenarioName" name="scenarioName"
+                                            value="Base_Scenario_{{ 'now' | strftime('%Y%m%d') }}" required>
+                                        <div class="form-text">Unique identifier for this forecast scenario</div>
+                                        <div class="invalid-feedback" id="scenarioNameFeedback"></div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="targetYear" class="form-label">Target Year *</label>
+                                        <input type="number" class="form-control" id="targetYear" name="targetYear"
+                                            value="{{ (param_dict.get('End_Year', 2037) | int) }}" min="2024" max="2050" required>
+                                        <div class="form-text">Final year for forecast projections</div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <div class="form-check mt-4">
+                                            <input class="form-check-input" type="checkbox" id="excludeCovidYears"
+                                                name="excludeCovidYears" checked>
+                                            <label class="form-check-label" for="excludeCovidYears">
+                                                Exclude COVID-19 impact years (2021-2022)
+                                            </label>
+                                            <div class="form-text">Remove anomalous pandemic years from model training</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!--Scenario Validation -->
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="alert alert-info scenario-validation" style="display: none;">
+                                            <div class="d-flex align-items-center">
+                                                <div class="spinner-border spinner-border-sm me-2" role="status">
+                                                    <span class="visually-hidden">Validating...</span>
+                                                </div>
+                                                <span>Validating scenario name...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--Default Model Selection -->
+                    <div class="-form-section">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-brain me-2"></i>Default Model Selection</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted mb-3">Select default forecasting models. These can be customized for individual sectors and will be saved in the configuration files.</p>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6 col-lg-3 mb-3">
+                                        <div class="model-selection-card">
+                                            <div class="form-check">
+                                                <input class="form-check-input default-model-checkbox" type="checkbox"
+                                                    id="defaultModelMLR" value="MLR" checked>
+                                                <label class="form-check-label" for="defaultModelMLR">
+                                                    <strong>Multiple Linear Regression</strong>
+                                                </label>
+                                                <div class="form-text">Uses multiple economic and demographic variables</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-lg-3 mb-3">
+                                        <div class="model-selection-card">
+                                            <div class="form-check">
+                                                <input class="form-check-input default-model-checkbox" type="checkbox"
+                                                    id="defaultModelSLR" value="SLR" checked>
+                                                <label class="form-check-label" for="defaultModelSLR">
+                                                    <strong>Simple Linear Regression</strong>
+                                                </label>
+                                                <div class="form-text">Time-based trend analysis</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-lg-3 mb-3">
+                                        <div class="model-selection-card">
+                                            <div class="form-check">
+                                                <input class="form-check-input default-model-checkbox" type="checkbox"
+                                                    id="defaultModelWAM" value="WAM" checked>
+                                                <label class="form-check-label" for="defaultModelWAM">
+                                                    <strong>Weighted Average Method</strong>
+                                                </label>
+                                                <div class="form-text">Recent data weighted more heavily</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-lg-3 mb-3">
+                                        <div class="model-selection-card">
+                                            <div class="form-check">
+                                                <input class="form-check-input default-model-checkbox" type="checkbox"
+                                                    id="defaultModelTimeSeries" value="TimeSeries" checked>
+                                                <label class="form-check-label" for="defaultModelTimeSeries">
+                                                    <strong>Time Series Analysis</strong>
+                                                </label>
+                                                <div class="form-text">Advanced pattern recognition</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-outline-primary" id="applyToAllSectorsBtn">
+                                        <i class="fas fa-check-circle me-2"></i>Apply to All Sectors
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--Sector-specific Settings -->
+                    <div class="-form-section">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-industry me-2"></i>Sector-specific Configuration</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="nav nav-tabs" id="sectorTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="all-sectors-tab" data-bs-toggle="tab"
+                                            data-bs-target="#all-sectors" type="button" role="tab"
+                                            aria-controls="all-sectors" aria-selected="true">
+                                            <i class="fas fa-chart-pie me-1"></i>Overview
+                                        </button>
+                                    </li>
+
+                                    {% for sector in sectors %}
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="{{ sector }}-tab" data-bs-toggle="tab"
+                                            data-bs-target="#{{ sector }}" type="button" role="tab"
+                                            aria-controls="{{ sector }}" aria-selected="false">{{ sector | title }}</button>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+
+                                <div class="tab-content pt-3" id="sectorTabContent">
+                                    <!--Overview Tab -->
+                                    <div class="tab-pane fade show active" id="all-sectors" role="tabpanel"
+                                        aria-labelledby="all-sectors-tab">
+                                        <div class="configuration-summary">
+                                            <h5><i class="fas fa-chart-pie me-2"></i>Configuration Summary</h5>
+                                            <p class="mb-0">Review the model configuration for all sectors. Click individual sector tabs to customize parameters. All configurations will be saved automatically.</p>
+                                        </div>
+
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-hover">
+                                                <thead class="table-dark">
+                                                    <tr>
+                                                        <th>Sector</th>
+                                                        <th>Selected Models</th>
+                                                        <th>Data Quality</th>
+                                                        <th>Configuration Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="sectorsOverviewTable">
+                                                    {% for sector in sectors %}
+                                                    <tr>
+                                                        <td><strong>{{ sector | title }}</strong></td>
+                                                        <td id="models_{{ sector }}">
+                                                            <span class="model-tag">Loading...</span>
+                                                        </td>
+                                                        <td id="quality_{{ sector }}">
+                                                            <span class="badge bg-success">Good</span>
+                                                        </td>
+                                                        <td><span class="status-badge status-ready">Ready</span></td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!--Individual Sector Configuration Tabs -->
+                                    {% for sector in sectors %}
+                                    <div class="tab-pane fade" id="{{ sector }}" role="tabpanel"
+                                        aria-labelledby="{{ sector }}-tab">
+                                        <div class="sector-config" data-sector="{{ sector }}">
+                                            <div class="configuration-summary">
+                                                <h5>{{ sector | title }} Sector Configuration</h5>
+                                                <p>Configure specific forecasting models and parameters for the {{ sector }} sector. All settings will be saved automatically.</p>
+                                            </div>
+
+                                            <div class="configuration-item">
+                                                <div class="card mb-3">
+                                                    <div class="card-header">
+                                                        <h6 class="mb-0">Model Selection</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="row mb-3">
+                                                            <div class="col-md-6 col-lg-3 mb-2">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input sector-model-checkbox"
+                                                                        type="checkbox" id="modelMLR_{{ sector }}"
+                                                                        name="forecastModel_{{ sector }}" value="MLR"
+                                                                        data-sector="{{ sector }}" checked>
+                                                                    <label class="form-check-label" for="modelMLR_{{ sector }}">
+                                                                        Multiple Linear Regression
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 col-lg-3 mb-2">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input sector-model-checkbox"
+                                                                        type="checkbox" id="modelSLR_{{ sector }}"
+                                                                        name="forecastModel_{{ sector }}" value="SLR"
+                                                                        data-sector="{{ sector }}" checked>
+                                                                    <label class="form-check-label" for="modelSLR_{{ sector }}">
+                                                                        Simple Linear Regression
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 col-lg-3 mb-2">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input sector-model-checkbox"
+                                                                        type="checkbox" id="modelWAM_{{ sector }}"
+                                                                        name="forecastModel_{{ sector }}" value="WAM"
+                                                                        data-sector="{{ sector }}" checked>
+                                                                    <label class="form-check-label" for="modelWAM_{{ sector }}">
+                                                                        Weighted Average Method
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6 col-lg-3 mb-2">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input sector-model-checkbox"
+                                                                        type="checkbox" id="modelTimeSeries_{{ sector }}"
+                                                                        name="forecastModel_{{ sector }}" value="TimeSeries"
+                                                                        data-sector="{{ sector }}" checked>
+                                                                    <label class="form-check-label"
+                                                                        for="modelTimeSeries_{{ sector }}">
+                                                                        Time Series Analysis
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!--MLR Config -->
+                                            <div class="configuration-item">
+                                                <div class="card mb-3" id="mlrConfig_{{ sector }}">
+                                                    <div class="card-header">
+                                                        <h6 class="mb-0">Multiple Linear Regression Parameters</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <p class="mb-3">Select independent variables to include in the regression model. Your selections will be saved automatically:</p>
+                                                        <div id="independentVarsContainer_{{ sector }}">
+                                                            <div class="alert alert-info">
+                                                                <i class="fas fa-spinner fa-spin me-2"></i>
+                                                                Loading available variables...
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!--WAM Config -->
+                                            <div class="configuration-item">
+                                                <div class="card mb-3" id="wamConfig_{{ sector }}">
+                                                    <div class="card-header">
+                                                        <h6 class="mb-0">Weighted Average Method Parameters</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <p class="mb-3">Select the window size (number of years) for calculating the weighted average:</p>
+
+                                                        <div class="row mb-3">
+                                                            <div class="col-md-3">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="radio"
+                                                                        name="windowSize_{{ sector }}" id="window5_{{ sector }}"
+                                                                        value="5">
+                                                                    <label class="form-check-label" for="window5_{{ sector }}">
+                                                                        5 years
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="radio"
+                                                                        name="windowSize_{{ sector }}"
+                                                                        id="window10_{{ sector }}" value="10" checked>
+                                                                    <label class="form-check-label" for="window10_{{ sector }}">
+                                                                        10 years
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="radio"
+                                                                        name="windowSize_{{ sector }}"
+                                                                        id="window15_{{ sector }}" value="15">
+                                                                    <label class="form-check-label" for="window15_{{ sector }}">
+                                                                        15 years
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="radio"
+                                                                        name="windowSize_{{ sector }}"
+                                                                        id="windowCustom_{{ sector }}" value="custom">
+                                                                    <label class="form-check-label"
+                                                                        for="windowCustom_{{ sector }}">
+                                                                        Custom
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row mb-3" id="customWindowContainer_{{ sector }}"
+                                                            style="display:none;">
+                                                            <div class="col-md-6">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text">Window size</span>
+                                                                    <input type="number" class="form-control"
+                                                                        id="customWindowSize_{{ sector }}" min="2" max="20"
+                                                                        value="7" placeholder="Enter years">
+                                                                    <span class="input-group-text">years</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!--SLR Config -->
+                                            <div class="configuration-item">
+                                                <div class="card mb-3" id="slrConfig_{{ sector }}" style="display:none;">
+                                                    <div class="card-header">
+                                                        <h6 class="mb-0">Simple Linear Regression Parameters</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <p class="mb-2">SLR uses Year as the independent variable to forecast electricity consumption.</p>
+                                                        <div class="alert alert-info">
+                                                            <i class="fas fa-info-circle me-2"></i>
+                                                            No additional configuration required for this model. Parameters will be saved automatically.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!--Time Series Config -->
+                                            <div class="configuration-item">
+                                                <div class="card mb-3" id="tsConfig_{{ sector }}" style="display:none;">
+                                                    <div class="card-header">
+                                                        <h6 class="mb-0">Time Series Analysis Parameters</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <p class="mb-2">Time Series Analysis uses historical patterns to forecast future values.</p>
+                                                        <div class="alert alert-info">
+                                                            <i class="fas fa-info-circle me-2"></i>
+                                                            The model will automatically select the optimal algorithm based on data characteristics. Configuration will be saved automatically.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-outline-info" id="validateConfigBtn">
+                    <i class="fas fa-check me-2"></i>Validate Configuration
+                </button>
+                <button type="button" class="btn btn-primary" id="runForecastBtn">
+                    <i class="fas fa-play me-2"></i>Execute Forecast & Save Configuration
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Progress Modal -->
+<div class="modal fade" id="forecastProgressModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false"
+    aria-labelledby="forecastProgressModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="forecastProgressModalLabel">
+                    <i class="fas fa-cogs me-2"></i>Executing Advanced Forecast Models & Saving Configuration
+                </h5>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <div class="forecast-progress-icon">
+                        <i class="fas fa-chart-line text-primary" style="font-size: 48px;"></i>
+                    </div>
+                    <h4 class="mt-3">Processing Forecast Models</h4>
+                    <p class="text-muted">Generating advanced forecasts for all configured sectors and saving complete configuration. This process may take several minutes depending on data complexity.</p>
+                </div>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span><strong>Current sector:</strong> <span id="progressSectorName">Initializing...</span></span>
+                        <span class="progress-percentage">0%</span>
+                    </div>
+                    <div class="progress mb-3">
+                        <div id="forecastProgressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+                            role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+                            style="width: 0%"></div>
+                    </div>
+                    
+                    <!--Progress Details -->
+                    <div class="progress-details">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="progress-stat">
+                                    <div class="stat-value" id="sectorsCompleted">0</div>
+                                    <div class="stat-label">Completed</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="progress-stat">
+                                    <div class="stat-value" id="sectorsTotal">{{ sectors|length }}</div>
+                                    <div class="stat-label">Total</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="progress-stat">
+                                    <div class="stat-value" id="estimatedRemaining">--</div>
+                                    <div class="stat-label">Est. Time</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Forecast results and complete configuration files will be automatically saved upon completion. You can safely close this dialog and the process will continue in the background.
+                </div>
+
+                <!--Progress Log -->
+                <div class="progress-log-container">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">Progress Log</h6>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleProgressLog()">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="progress-log" id="progressLog" style="display: none;">
+                        <div class="log-entry">
+                            <span class="log-time">{{ 'now' | strftime('%H:%M:%S') }}</span>
+                            <span class="log-message">Enhanced forecast process initialized with configuration tracking</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" onclick="minimizeProgressModal()">
+                    <i class="fas fa-window-minimize me-2"></i>Minimize
+                </button>
+                <button type="button" class="btn btn-danger" id="cancelForecastBtn">
+                    <i class="fas fa-stop me-2"></i>Cancel Process
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Completion Modal -->
+<div class="modal fade" id="forecastCompleteModal" tabindex="-1" aria-labelledby="forecastCompleteModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="forecastCompleteModalLabel">
+                    <i class="fas fa-check-circle me-2"></i>Forecast Complete & Configuration Saved
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <div class="success-animation">
+                        <i class="fas fa-check-circle text-success" style="font-size: 64px;"></i>
+                    </div>
+                    <h3 class="mt-3 text-success">Forecast Successfully Generated</h3>
+                    <p class="text-muted">All forecasting models have been executed and results are ready for comprehensive analysis. Complete configuration has been saved automatically.</p>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Scenario Details</h6>
+                            </div>
+                            <div class="card-body">
+                                <dl class="row mb-0">
+                                    <dt class="col-6">Scenario Name:</dt>
+                                    <dd class="col-6" id="summaryScenario">Base_Scenario</dd>
+                                    <dt class="col-6">Target Year:</dt>
+                                    <dd class="col-6" id="summaryTargetYear">2037</dd>
+                                    <dt class="col-6">Sectors:</dt>
+                                    <dd class="col-6" id="summaryTotalSectors">{{ sectors|length }}</dd>
+                                    <dt class="col-6">Processing Time:</dt>
+                                    <dd class="col-6" id="summaryProcessingTime">--</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Results & Configuration</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2"><strong>Results Path:</strong></p>
+                                <code id="summaryFilePath" class="d-block p-2 bg-light text-dark rounded small">
+                                    results/demand_projection/Base_Scenario
+                                </code>
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Includes: forecast_config.json, forecast_summary.json, execution_metadata.json
+                                    </small>
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="copyPathToClipboard()">
+                                        <i class="fas fa-copy me-1"></i>Copy Path
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-success mt-3">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Next Steps:</strong> Results include detailed configuration logs, model performance metrics, and comparative analysis. 
+                    All user selections have been saved automatically for future reference and scenario reproduction.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Close
+                </button>
+                <button type="button" class="btn btn-outline-primary" onclick="openResultsInNewTab()">
+                    <i class="fas fa-external-link-alt me-2"></i>Open in New Tab
+                </button>
+                <a href="#" class="btn btn-primary" id="viewResultsBtn">
+                    <i class="fas fa-chart-bar me-2"></i>View Results
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CRITICAL:Hidden data storage for JavaScript -->
+<div id="hiddenDataStore" style="display: none;">
+    <script type="application/json" id="sectorsData">{{ sectors | tojson | safe }}</script>
+    <script type="application/json" id="paramData">{{ param_dict | tojson | safe }}</script>
+    <script type="application/json" id="dataSummary">{{ data_summary | tojson | safe }}</script>
+    <script type="application/json" id="configurationMetadata">{
+        "platform_version": "1.0.0",
+        "configuration_support": "",
+        "auto_save": true,
+        "tracking_enabled": true,
+        "current_timestamp": "{{ 'now' | strftime('%Y-%m-%d %H:%M:%S') }}"
+    }</script>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/plotly.js@2.27.0/dist/plotly.min.js"></script>
+<script src="{{ url_for('static', filename='js/demand_projection.js') }}"></script>
+
+<!--Configuration Tracking Script -->
+<script>
+// Additional initialization forconfiguration tracking
+document.addEventListener('DOMContentLoaded', function() {
+    console.log(" Demand Projection Template: Initializing configuration tracking");
+    
+    // Update configuration progress indicator
+    const configProgress = document.getElementById('configurationProgress');
+    if (configProgress) {
+        // Initialize with current configuration status
+        let completionPercentage = 0;
+        const totalSectors = {{ sectors|length }};
+        
+        if (totalSectors > 0) {
+            completionPercentage = 100; // Data is loaded
+        }
+        
+        configProgress.style.background = `linear-gradient(90deg, #e9ecef 0%, #0d6efd ${completionPercentage}%)`;
+    }
+    
+    //button state management
+    const forecastButtons = document.querySelectorAll('.run-forecast-btn, .forecast-btn');
+    forecastButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            console.log('Enhanced forecast configuration requested');
+        });
+    });
+    
+    console.log(" Demand Projection Template: Initialization complete");
+});
+</script>
+{% endblock %}

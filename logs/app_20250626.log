@@ -1,0 +1,127 @@
+2025-06-26 17:26:32,659 - INFO - app - [app.py:119] - Logging configured successfully
+2025-06-26 17:26:32,661 - INFO - app - [app.py:142] - Validating application configuration
+2025-06-26 17:26:32,661 - INFO - app - [app.py:162] - Configuration validation completed
+2025-06-26 17:26:32,836 - INFO - utils.performance_profiler - [performance_profiler.py:45] - PerformanceProfiler initialized
+2025-06-26 17:26:32,847 - INFO - services.demand_projection_service - [demand_projection_service.py:86] - job cleanup thread started
+2025-06-26 17:26:40,893 - INFO - utils.error_handlers - [error_handlers.py:253] - StandardErrorHandler initialized
+2025-06-26 17:26:44,150 - INFO - blueprints.pypsa_bp - [pypsa_bp.py:134] - NetworkManager initialized: max_networks=3, memory_threshold=1500MB
+2025-06-26 17:26:44,161 - INFO - utils.memory_manager - [memory_manager.py:84] - MemoryManager initialized (warning: 75.0%, critical: 90.0%)
+2025-06-26 17:26:44,440 - INFO - utils.base_blueprint - [base_blueprint.py:212] - Registered blueprint: core
+2025-06-26 17:26:44,441 - INFO - app - [project_bp.py:278] - Project blueprint registered successfully
+2025-06-26 17:26:44,443 - INFO - utils.base_blueprint - [base_blueprint.py:212] - Registered blueprint: data
+2025-06-26 17:26:44,447 - INFO - utils.base_blueprint - [base_blueprint.py:212] - Registered blueprint: demand_projection
+2025-06-26 17:26:44,447 - INFO - blueprints.demand_projection_bp - [demand_projection_bp.py:792] -  Demand Projection Blueprint registered successfully with complete configuration support
+2025-06-26 17:26:44,451 - INFO - blueprints.demand_visualization_bp - [demand_visualization_bp.py:521] - Demand Visualization Blueprint registered successfully
+2025-06-26 17:26:44,455 - INFO - utils.base_blueprint - [base_blueprint.py:212] - Registered blueprint: loadprofile
+2025-06-26 17:26:44,460 - INFO - utils.base_blueprint - [base_blueprint.py:212] - Registered blueprint: loadprofile_analysis
+2025-06-26 17:26:44,463 - INFO - blueprints.pypsa_bp - [pypsa_bp.py:961] - PyPSA blueprint registered successfully
+2025-06-26 17:26:44,465 - INFO - utils.base_blueprint - [base_blueprint.py:212] - Registered blueprint: admin
+2025-06-26 17:26:44,473 - INFO - utils.color_manager - [color_manager.py:185] - Colors loaded from C:\Users\Admin\Documents\kseb_with_blueprints v1\Load-forecasting-and-modeling-main\static\config\colors.json
+2025-06-26 17:26:44,477 - INFO - blueprints.color_management_bp - [color_management_bp.py:358] - Color Management Blueprint registered successfully
+2025-06-26 17:26:44,477 - INFO - app - [app.py:199] - All blueprints registered successfully
+2025-06-26 17:26:44,477 - INFO - utils.features_manager - [features_manager.py:23] - FeatureManager initialized
+2025-06-26 17:26:44,478 - INFO - app - [app.py:206] - FeatureManager initialized
+2025-06-26 17:26:44,478 - INFO - app - [app.py:97] - KSEB Energy Futures Platform initialized successfully
+2025-06-26 17:26:44,485 - INFO - werkzeug - [_internal.py:97] - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-26 17:26:44,485 - INFO - werkzeug - [_internal.py:97] - [33mPress CTRL+C to quit[0m
+2025-06-26 17:26:47,813 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:26:47] "GET / HTTP/1.1" 200 -
+2025-06-26 17:26:47,841 - WARNING - app - [app.py:281] - 404 Not Found: http://127.0.0.1:5000/static/css/sidebar-layout.css - 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2025-06-26 17:26:47,861 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:26:47] "[33mGET /static/css/sidebar-layout.css HTTP/1.1[0m" 404 -
+2025-06-26 17:26:47,948 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:26:47] "GET /static/css/common.css HTTP/1.1" 200 -
+2025-06-26 17:26:47,960 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:26:47] "GET /static/logos/Vasudha_Logo_PNG.png HTTP/1.1" 200 -
+2025-06-26 17:26:47,961 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:26:47] "GET /static/css/utilities.css HTTP/1.1" 200 -
+2025-06-26 17:26:47,961 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:26:47] "GET /static/css/layout-fixes.css HTTP/1.1" 200 -
+2025-06-26 17:26:47,961 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:26:47] "GET /static/css/home.css HTTP/1.1" 200 -
+2025-06-26 17:26:47,963 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:26:47] "GET /static/images/no_activity_vector.svg HTTP/1.1" 200 -
+2025-06-26 17:26:48,378 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:26:48] "GET /static/js/recent-projects.js HTTP/1.1" 200 -
+2025-06-26 17:26:48,386 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:26:48] "GET /static/js/home.js HTTP/1.1" 200 -
+2025-06-26 17:26:48,679 - INFO - app - [project_bp.py:210] - Processing API request for recent_projects via project_bp
+2025-06-26 17:26:48,699 - INFO - app - [project_bp.py:224] - Loaded 2 recent projects for user default_user
+2025-06-26 17:26:48,700 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:26:48] "GET /project/api/recent_projects HTTP/1.1" 200 -
+2025-06-26 17:27:38,086 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:38] "[32mGET /demand_projection/ HTTP/1.1[0m" 302 -
+2025-06-26 17:27:38,695 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:38] "GET / HTTP/1.1" 200 -
+2025-06-26 17:27:38,722 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:38] "[36mGET /static/css/common.css HTTP/1.1[0m" 304 -
+2025-06-26 17:27:38,734 - WARNING - app - [app.py:281] - 404 Not Found: http://127.0.0.1:5000/static/css/sidebar-layout.css - 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2025-06-26 17:27:38,738 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:38] "[36mGET /static/css/utilities.css HTTP/1.1[0m" 304 -
+2025-06-26 17:27:38,742 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:38] "[33mGET /static/css/sidebar-layout.css HTTP/1.1[0m" 404 -
+2025-06-26 17:27:38,743 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:38] "[36mGET /static/css/layout-fixes.css HTTP/1.1[0m" 304 -
+2025-06-26 17:27:38,745 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:38] "[36mGET /static/css/home.css HTTP/1.1[0m" 304 -
+2025-06-26 17:27:38,752 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:38] "[36mGET /static/logos/Vasudha_Logo_PNG.png HTTP/1.1[0m" 304 -
+2025-06-26 17:27:38,770 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:38] "[36mGET /static/images/no_activity_vector.svg HTTP/1.1[0m" 304 -
+2025-06-26 17:27:38,853 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:38] "[36mGET /static/js/home.js HTTP/1.1[0m" 304 -
+2025-06-26 17:27:38,857 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:38] "[36mGET /static/js/recent-projects.js HTTP/1.1[0m" 304 -
+2025-06-26 17:27:38,875 - INFO - app - [project_bp.py:210] - Processing API request for recent_projects via project_bp
+2025-06-26 17:27:38,875 - INFO - app - [project_bp.py:224] - Loaded 2 recent projects for user default_user
+2025-06-26 17:27:38,876 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:38] "GET /project/api/recent_projects HTTP/1.1" 200 -
+2025-06-26 17:27:46,196 - INFO - app - [project_bp.py:162] - Processing load_project request via project_bp
+2025-06-26 17:27:46,205 - INFO - app - [project_bp.py:19] - Saving recent project: 'Default_project' at 'C:\Users\Admin\Desktop\drive april 2025\kerala kseb project backup 13-1-2025\new\gemini testing new version\testing project\Default_project' for user 'default_user'
+2025-06-26 17:27:46,207 - INFO - app - [project_bp.py:56] - Successfully saved recent project for user default_user
+2025-06-26 17:27:46,208 - INFO - app - [project_bp.py:194] - Successfully loaded project: Default_project at C:\Users\Admin\Desktop\drive april 2025\kerala kseb project backup 13-1-2025\new\gemini testing new version\testing project\Default_project
+2025-06-26 17:27:46,209 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:46] "POST /project/load HTTP/1.1" 200 -
+2025-06-26 17:27:48,262 - INFO - app - [app.py:331] - Redirecting legacy demand projection route
+2025-06-26 17:27:48,266 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:48] "[32mGET /demand/projection HTTP/1.1[0m" 302 -
+2025-06-26 17:27:49,133 - INFO - utils.data_loading - [data_loading.py:103] - File validation passed for C:\Users\Admin\Desktop\drive april 2025\kerala kseb project backup 13-1-2025\new\gemini testing new version\testing project\Default_project\inputs\input_demand_file.xlsx
+2025-06-26 17:27:49,134 - INFO - utils.data_loading - [data_loading.py:273] - Processing input demand file: C:\Users\Admin\Desktop\drive april 2025\kerala kseb project backup 13-1-2025\new\gemini testing new version\testing project\Default_project\inputs\input_demand_file.xlsx
+2025-06-26 17:27:49,399 - INFO - utils.data_loading - [data_loading.py:103] - File validation passed for C:\Users\Admin\Desktop\drive april 2025\kerala kseb project backup 13-1-2025\new\gemini testing new version\testing project\Default_project\inputs\input_demand_file.xlsx
+2025-06-26 17:27:49,451 - INFO - utils.data_loading - [data_loading.py:314] - Extracted parameters: Start_Year=2025, End_Year=2037
+2025-06-26 17:27:49,452 - INFO - utils.data_loading - [data_loading.py:338] - Found 11 sectors: ['Agriculture', 'Domestic_lt', 'Commercial_lt', 'railway_traction', 'ev_transport', 'green_hydrogen', 'solar_rooftop', 'licencees', 'public_lighting', 'ht_eht', 'industrial_lt']
+2025-06-26 17:27:49,491 - INFO - utils.data_loading - [data_loading.py:350] - Loaded Economic Indicators with columns: ['Year', 'Total Population', 'GSDP', 'Per Capita GSDP', 'Agriculture_GVA', 'ht_eht_GVA', 'No of Households', 'Rainfall']
+2025-06-26 17:27:50,127 - WARNING - utils.data_loading - [data_loading.py:615] - Sector solar_rooftop: 20 negative electricity values, setting to 0
+2025-06-26 17:27:50,522 - INFO - utils.data_loading - [data_loading.py:431] - Calculated Total column for aggregated data with 11 sectors
+2025-06-26 17:27:50,523 - INFO - utils.data_loading - [data_loading.py:438] - Successfully processed 11 sectors, 0 failed
+2025-06-26 17:27:50,524 - INFO - services.demand_projection_service - [demand_projection_service.py:395] - Loaded input data: 11 sectors, 0 missing
+2025-06-26 17:27:50,769 - INFO - blueprints.demand_projection_bp - [demand_projection_bp.py:168] - Successfully prepared demand projection page with 11 sectors
+2025-06-26 17:27:51,303 - WARNING - utils.performance_profiler - [performance_profiler.py:203] - Slow endpoint: demand_projection_route took 3027.95ms
+2025-06-26 17:27:51,304 - WARNING - utils.common_decorators - [common_decorators.py:295] - Slow route: demand_projection_route took 3027.95ms
+2025-06-26 17:27:51,305 - WARNING - utils.base_blueprint - [base_blueprint.py:67] - Slow request in demand_projection: demand_projection.demand_projection_route took 3.03s
+2025-06-26 17:27:51,307 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:51] "GET /demand_projection/ HTTP/1.1" 200 -
+2025-06-26 17:27:51,358 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:51] "[36mGET /static/css/common.css HTTP/1.1[0m" 304 -
+2025-06-26 17:27:51,361 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:51] "[36mGET /static/css/utilities.css HTTP/1.1[0m" 304 -
+2025-06-26 17:27:51,365 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:51] "[36mGET /static/css/layout-fixes.css HTTP/1.1[0m" 304 -
+2025-06-26 17:27:51,368 - WARNING - app - [app.py:281] - 404 Not Found: http://127.0.0.1:5000/static/css/sidebar-layout.css - 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2025-06-26 17:27:51,370 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:51] "[33mGET /static/css/sidebar-layout.css HTTP/1.1[0m" 404 -
+2025-06-26 17:27:51,372 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:51] "GET /static/css/demand_projection.css HTTP/1.1" 200 -
+2025-06-26 17:27:51,374 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:51] "[36mGET /static/logos/Vasudha_Logo_PNG.png HTTP/1.1[0m" 304 -
+2025-06-26 17:27:51,520 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:51] "GET /static/js/demand_projection.js HTTP/1.1" 200 -
+2025-06-26 17:27:52,360 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:52] "GET /demand_projection/api/chart_data/aggregated HTTP/1.1" 200 -
+2025-06-26 17:27:55,657 - INFO - services.demand_visualization_service - [demand_visualization_service.py:46] - Initialized DemandVisualizationService with path: C:\Users\Admin\Desktop\drive april 2025\kerala kseb project backup 13-1-2025\new\gemini testing new version\testing project\Default_project\results\demand_projection
+2025-06-26 17:27:57,159 - INFO - services.demand_visualization_service - [demand_visualization_service.py:72] - Found 9 valid scenarios
+2025-06-26 17:27:57,254 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:57] "GET /demand_visualization/ HTTP/1.1" 200 -
+2025-06-26 17:27:57,295 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:57] "[36mGET /static/css/common.css HTTP/1.1[0m" 304 -
+2025-06-26 17:27:57,307 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:57] "[36mGET /static/css/utilities.css HTTP/1.1[0m" 304 -
+2025-06-26 17:27:57,314 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:57] "[36mGET /static/logos/Vasudha_Logo_PNG.png HTTP/1.1[0m" 304 -
+2025-06-26 17:27:57,317 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:57] "GET /static/css/demand_visualization.css HTTP/1.1" 200 -
+2025-06-26 17:27:57,348 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:57] "GET /static/js/color_manager.js HTTP/1.1" 200 -
+2025-06-26 17:27:57,440 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:57] "GET /static/js/demand_visualization.js HTTP/1.1" 200 -
+2025-06-26 17:27:57,460 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:57] "GET /api/colors/get-all HTTP/1.1" 200 -
+2025-06-26 17:27:57,460 - INFO - services.demand_visualization_service - [demand_visualization_service.py:46] - Initialized DemandVisualizationService with path: C:\Users\Admin\Desktop\drive april 2025\kerala kseb project backup 13-1-2025\new\gemini testing new version\testing project\Default_project\results\demand_projection
+2025-06-26 17:27:57,940 - INFO - services.demand_visualization_service - [demand_visualization_service.py:72] - Found 9 valid scenarios
+2025-06-26 17:27:57,941 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:27:57] "GET /demand_visualization/api/scenarios HTTP/1.1" 200 -
+2025-06-26 17:28:00,591 - INFO - services.demand_visualization_service - [demand_visualization_service.py:46] - Initialized DemandVisualizationService with path: C:\Users\Admin\Desktop\drive april 2025\kerala kseb project backup 13-1-2025\new\gemini testing new version\testing project\Default_project\results\demand_projection
+2025-06-26 17:28:01,481 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:28:01] "GET /demand_visualization/api/scenario/nhfgbv HTTP/1.1" 200 -
+2025-06-26 17:28:01,490 - INFO - services.demand_visualization_service - [demand_visualization_service.py:46] - Initialized DemandVisualizationService with path: C:\Users\Admin\Desktop\drive april 2025\kerala kseb project backup 13-1-2025\new\gemini testing new version\testing project\Default_project\results\demand_projection
+2025-06-26 17:28:01,542 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:28:01] "GET /demand_visualization/api/model-selection/nhfgbv HTTP/1.1" 200 -
+2025-06-26 17:28:01,551 - WARNING - app - [app.py:288] - 405 Method Not Allowed: POST http://127.0.0.1:5000/demand_visualization/api/chart/sector/nhfgbv/Agriculture
+2025-06-26 17:28:01,552 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:28:01] "[31m[1mPOST /demand_visualization/api/chart/sector/nhfgbv/Agriculture HTTP/1.1[0m" 405 -
+2025-06-26 17:28:01,553 - WARNING - app - [app.py:288] - 405 Method Not Allowed: POST http://127.0.0.1:5000/demand_visualization/api/chart/sector/nhfgbv/Agriculture
+2025-06-26 17:28:01,554 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:28:01] "[31m[1mPOST /demand_visualization/api/chart/sector/nhfgbv/Agriculture HTTP/1.1[0m" 405 -
+2025-06-26 17:28:19,319 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:28:19] "[36mGET /static/css/common.css HTTP/1.1[0m" 304 -
+2025-06-26 17:28:19,321 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:28:19] "[36mGET /static/css/utilities.css HTTP/1.1[0m" 304 -
+2025-06-26 17:28:19,325 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:28:19] "[36mGET /static/css/demand_visualization.css HTTP/1.1[0m" 304 -
+2025-06-26 17:28:19,352 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:28:19] "[35m[1mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 204 -
+2025-06-26 17:31:00,739 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:31:00] "GET /?ide_webview_request_time=1750939259896 HTTP/1.1" 200 -
+2025-06-26 17:31:00,753 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:31:00] "GET /static/css/common.css HTTP/1.1" 200 -
+2025-06-26 17:31:01,063 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:31:01] "GET /static/css/utilities.css HTTP/1.1" 200 -
+2025-06-26 17:31:01,066 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:31:01] "GET /static/css/layout-fixes.css HTTP/1.1" 200 -
+2025-06-26 17:31:01,070 - WARNING - app - [app.py:281] - 404 Not Found: http://localhost:5000/static/css/sidebar-layout.css - 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2025-06-26 17:31:01,076 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:31:01] "[33mGET /static/css/sidebar-layout.css HTTP/1.1[0m" 404 -
+2025-06-26 17:31:01,078 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:31:01] "GET /static/css/home.css HTTP/1.1" 200 -
+2025-06-26 17:31:01,086 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:31:01] "GET /static/logos/Vasudha_Logo_PNG.png HTTP/1.1" 200 -
+2025-06-26 17:31:01,087 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:31:01] "GET /static/images/no_activity_vector.svg HTTP/1.1" 200 -
+2025-06-26 17:31:01,390 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:31:01] "GET /static/js/recent-projects.js HTTP/1.1" 200 -
+2025-06-26 17:31:01,391 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:31:01] "GET /static/js/home.js HTTP/1.1" 200 -
+2025-06-26 17:31:01,713 - INFO - app - [project_bp.py:210] - Processing API request for recent_projects via project_bp
+2025-06-26 17:31:01,734 - INFO - app - [project_bp.py:224] - Loaded 2 recent projects for user default_user
+2025-06-26 17:31:01,736 - INFO - werkzeug - [_internal.py:97] - 127.0.0.1 - - [26/Jun/2025 17:31:01] "GET /project/api/recent_projects HTTP/1.1" 200 -
+2025-06-26 17:31:30,455 - INFO - blueprints.pypsa_bp - [pypsa_bp.py:949] - PyPSA blueprint cleanup completed

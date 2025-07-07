@@ -1,0 +1,59 @@
+{
+  "carriers": {
+    "biomass": "#16A34A",
+    "coal": "#1F2937",
+    "electricity": "#3B82F6",
+    "hydro": "#0891B2",
+    "natural_gas": "#EF4444",
+    "nuclear": "#7C3AED",
+    "oil": "#92400E",
+    "solar": "#F59E0B",
+    "wind": "#06B6D4"
+  },
+  "charts": {
+    "primary": "#2563EB",
+    "quaternary": "#7C3AED",
+    "quinary": "#EA580C",
+    "secondary": "#059669",
+    "tertiary": "#DC2626"
+  },
+  "models": {
+    "ARIMA": "#EF4444",
+    "Linear": "#06B6D4",
+    "MLR": "#3b82f6",
+    "SLR": "#000000",
+    "TimeSeries": "#8B5CF6",
+    "User Data": "#528400",
+    "WAM": "#f59e0b"
+  },
+  "sectors": {
+    "Agriculture": "#ffb56b",
+    "Commercial_lt": "#8b6704",
+    "Domestic_lt": "#ff68db",
+    "agriculture": "#16A34A",
+    "commercial": "#059669",
+    "construction": "#0891B2",
+    "ev_transport": "#4e524c",
+    "green_hydrogen": "#9693ff",
+    "ht_eht": "#6c8604",
+    "industrial": "#DC2626",
+    "industrial_lt": "#000000",
+    "licencees": "#cdb2f6",
+    "mining": "#92400E",
+    "other": "#6B7280",
+    "public": "#EA580C",
+    "public_lighting": "#50e602",
+    "railway_traction": "#b885ab",
+    "residential": "#2563EB",
+    "services": "#BE185D",
+    "solar_rooftop": "#915880",
+    "transportation": "#7C3AED"
+  },
+  "status": {
+    "error": "#EF4444",
+    "info": "#3B82F6",
+    "pending": "#6B7280",
+    "success": "#10B981",
+    "warning": "#F59E0B"
+  }
+}

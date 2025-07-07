@@ -1,0 +1,648 @@
+{% extends "sidebar_layout.html" %}
+
+{% block title %}PyPSA Modeling - {{ current_project or "No Project" }}{% endblock %}
+
+<meta name="flask-context" content='{{ {
+    "currentProject": get_current_project_info().name,
+    "currentProjectPath": get_current_project_info().path,
+    "hasProject": get_current_project_info().has_project,
+    "inputFileExists": input_file_exists,
+    "apiPrefix": "/pypsa/api"
+} | tojson | safe }}'>
+
+{% block additional_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/utilities.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/layout-fixes.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar-layout.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pypsa_modeling.css') }}">
+
+
+{% endblock %}
+
+
+
+
+{% block content %}
+<div class="main-container">
+    <!-- Debug Information Panel -->
+    <div id="debugPanel" class="debug-info debug-warning mb-4" style="display: none;">
+        <h6><i class="fas fa-bug me-2"></i>Debug Information</h6>
+        <div id="debugContent">Loading debug info...</div>
+        <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="toggleDebugPanel()">
+            Hide Debug Info
+        </button>
+    </div>
+
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-cogs text-primary me-2"></i>
+                        PyPSA Power System Modeling
+                    </h2>
+                    <p class="text-muted mb-0">
+                        Configure and execute PyPSA optimization models for power system analysis
+                    </p>
+                </div>
+                <div class="text-end">
+                    {% if get_current_project_info().has_project %}
+                        <span class="badge bg-success fs-6">
+                            <i class="fas fa-project-diagram me-1"></i>
+                            {{ get_current_project_info().name }}
+                        </span>
+                    {% else %}
+                        <span class="badge bg-warning fs-6">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            No Project
+                        </span>
+                    {% endif %}
+                    <button type="button" class="btn btn-sm btn-outline-info ms-2" onclick="showDebugPanel()">
+                        <i class="fas fa-bug me-1"></i>Debug
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Global Alert Placeholder -->
+    <div id="global-alert-container-page"></div>
+
+    <!-- Project Status Alerts -->
+    {% if not get_current_project_info().has_project %}
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <div>
+            <strong>No Project Selected:</strong> Please
+            <a href="{{ url_for('core.home') }}" class="alert-link">load or create a project</a>
+            before running PyPSA models.
+        </div>
+    </div>
+    {% elif not input_file_exists %}
+    <div class="alert alert-danger d-flex align-items-center" role="alert">
+        <i class="fas fa-file-excel me-2"></i>
+        <div>
+            <strong>Input File Missing:</strong> PyPSA input template (<code>pypsa_input_template.xlsx</code>)
+            not found in project's <code>inputs</code> folder. This file is required to run models.
+            <a href="{{ url_for('data.download_template_route', template_type='pypsa_input') }}"
+               class="btn btn-sm btn-outline-primary ms-2">
+                <i class="fas fa-download me-1"></i>Download Template
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Form -->
+    <form id="pypsaRunForm" method="post" novalidate>
+        <div class="row">
+            <!-- Main Configuration Panel -->
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-sliders-h me-2"></i>
+                            Model Configuration
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Scenario Information -->
+                        <div class="settings-section">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-tag me-1"></i>Scenario Information
+                            </h6>
+
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label for="scenarioName" class="form-label">
+                                            Scenario Name <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="scenarioName"
+                                               name="scenarioName"
+                                               required
+                                               placeholder="e.g., High_Renewable_2030"
+                                               pattern="[a-zA-Z0-9_\-\s.+]+"
+                                               maxlength="50"
+                                               title="Letters, numbers, spaces, hyphens, underscores, periods, plus signs allowed">
+                                        <div class="form-text">
+                                            Used for organizing and identifying your model results.
+                                        </div>
+                                        <div class="invalid-feedback">
+                                            Please provide a valid scenario name.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Template Status</label>
+                                        <div class="p-2 border rounded bg-light text-center">
+                                            {% if input_file_exists %}
+                                                <i class="fas fa-check-circle text-success me-1"></i>
+                                                <small class="text-success">Template Loaded</small>
+                                            {% else %}
+                                                <i class="fas fa-times-circle text-danger me-1"></i>
+                                                <small class="text-danger">Template Missing</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Model Settings -->
+                        <div class="settings-section">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-cog me-1"></i>Model Settings
+                            </h6>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="runPypsaModelOn" class="form-label">Snapshot Selection</label>
+                                        <select class="form-select" id="runPypsaModelOn" name="runPypsaModelOn">
+                                            <option value="All Snapshots">All Snapshots</option>
+                                            <option value="Critical days">Critical Days</option>
+                                            <option value="Typical days">Typical Days</option>
+                                        </select>
+                                        <div class="form-text">Determines which time periods to include in optimization.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="weightings" class="form-label">Time Resolution (Hours per Snapshot)</label>
+                                        <input type="number"
+                                               class="form-control"
+                                               id="weightings"
+                                               name="weightings"
+                                               value="1"
+                                               min="1"
+                                               max="24"
+                                               step="1">
+                                        <div class="form-text">Typical duration each snapshot represents (e.g., 1, 3).</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="baseYear" class="form-label">Base Year</label>
+                                        <input type="number"
+                                               class="form-control"
+                                               id="baseYear"
+                                               name="baseYear"
+                                               value="2025"
+                                               min="2020"
+                                               max="2050"
+                                               step="1">
+                                        <div class="form-text">Starting year for the simulation.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="multiYearInvestment" class="form-label">Investment Mode</label>
+                                        <select class="form-select" id="multiYearInvestment" name="multiYearInvestment">
+                                            <option value="No">Single Year Optimization</option>
+                                            <option value="Only Capacity expansion on multi year" disabled>Multi-Year Capacity Only (NYI)</option>
+                                            <option value="All in One multi year" disabled>Full Multi-Year (NYI)</option>
+                                        </select>
+                                        <div class="form-text">Choose optimization scope. (NYI: Not Yet Implemented)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Options -->
+                        <div class="settings-section">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-tools me-1"></i>Advanced Options
+                            </h6>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check mb-3 pt-2">
+                                        <input class="form-check-input" type="checkbox" id="generatorCluster" name="generatorCluster">
+                                        <label class="form-check-label" for="generatorCluster">
+                                            <strong>Enable Generator Clustering</strong>
+                                        </label>
+                                        <div class="form-text">Groups similar generators to reduce model complexity.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mb-3 pt-2">
+                                        <input class="form-check-input" type="checkbox" id="committableUnits" name="committableUnits">
+                                        <label class="form-check-label" for="committableUnits">
+                                            <strong>Enable Unit Commitment</strong>
+                                        </label>
+                                        <div class="form-text">Models startup/shutdown decisions for thermal units.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Solver Configuration -->
+                        <div class="settings-section">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-microchip me-1"></i>Solver Configuration
+                            </h6>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="highsSolverType" class="form-label">HiGHS Solver Algorithm</label>
+                                        <select class="form-select" id="highsSolverType" name="highsSolverType">
+                                            <option value="simplex">Dual Simplex</option>
+                                            <option value="pdlp">PDLP (Primal-Dual Interior Point)</option>
+                                        </select>
+                                        <div class="form-text">Simplex is often faster for typical power system LPs.</div>
+                                    </div>
+
+                                    <!-- Simplex-specific options -->
+                                    <div id="simplexStrategyContainer" class="solver-option-container mb-3">
+                                        <label for="simplexStrategy" class="form-label">Simplex Strategy</label>
+                                        <select class="form-select" id="simplexStrategy" name="simplexStrategy">
+                                            <option value="0">Choose Automatically</option>
+                                            <option value="1">SIP (Serial Iterative Pricing)</option>
+                                            <option value="2">SIP (Parallel Iterative Pricing)</option>
+                                            <option value="3">PAMI (Parallel Across Multiple Iterations)</option>
+                                        </select>
+                                        <div class="form-text">PAMI may be faster on multi-core systems.</div>
+                                    </div>
+
+                                    <!-- PDLP-specific options -->
+                                    <div id="pdlpGapTolContainer" class="solver-option-container mb-3" style="display: none;">
+                                        <label for="pdlpGapTol" class="form-label">PDLP Optimality Gap Tolerance</label>
+                                        <input type="number"
+                                               class="form-control"
+                                               id="pdlpGapTol"
+                                               name="pdlpGapTol"
+                                               value="0.0001"
+                                               min="0.000001"
+                                               max="0.01"
+                                               step="0.000001">
+                                        <div class="form-text">Smaller values increase accuracy but extend solution time.</div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="solverThreads" class="form-label">Solver Threads</label>
+                                        <input type="number"
+                                               class="form-control"
+                                               id="solverThreads"
+                                               name="solverThreads"
+                                               value="0"
+                                               min="0"
+                                               max="128"
+                                               step="1">
+                                        <div class="form-text">0 = auto-detect; set to number of physical cores for best performance.</div>
+                                    </div>
+
+                                    <div class="row mt-3">
+                                        <div class="col-sm-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="solverParallel" name="solverParallel" checked>
+                                                <label class="form-check-label" for="solverParallel">
+                                                    <small><strong>Parallel Processing</strong></small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="solverPresolve" name="solverPresolve" checked>
+                                                <label class="form-check-label" for="solverPresolve">
+                                                    <small><strong>Enable Presolve</strong></small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="logToConsoleSolver" name="logToConsoleSolver" checked>
+                                        <label class="form-check-label" for="logToConsoleSolver">
+                                            <small><strong>Enable Solver Logging (to run log)</strong></small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="col-lg-4">
+                <!-- Actions Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-play-circle me-2"></i>
+                            Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <button type="button"
+                                    id="loadExcelSettingsBtn"
+                                    class="btn btn-outline-secondary w-100"
+                                    {% if not input_file_exists %}disabled{% endif %}>
+                                <i class="fas fa-file-excel me-2"></i>
+                                Load Settings from Excel
+                            </button>
+                            <div class="form-text mt-1">Populate settings from your <code>pypsa_input_template.xlsx</code>.</div>
+                        </div>
+
+                        <!-- Debug button state -->
+                        <div id="buttonStateDebug" class="debug-info mb-3" style="display: none;">
+                            <strong>Button State Debug:</strong><br>
+                            <span id="buttonStateText">Checking...</span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit"
+                                    id="runPypsaBtn"
+                                    class="btn btn-primary btn-lg"
+                                    data-has-project="{{ get_current_project_info().has_project | tojson }}"
+                                    data-input-exists="{{ input_file_exists | tojson }}"
+                                    {% if not get_current_project_info().has_project or not input_file_exists %}disabled data-disabled="true"{% endif %}>
+                                <i class="fas fa-play me-2"></i>
+                                Run PyPSA Model
+                            </button>
+
+                            <button type="button"
+                                    id="cancelPypsaBtn"
+                                    class="btn btn-outline-danger"
+                                    style="display: none;">
+                                <i class="fas fa-stop me-2"></i>
+                                Cancel Run (NYI)
+                            </button>
+
+                            <!-- Debug Test Button -->
+                            <button type="button"
+                                    id="debugTestBtn"
+                                    class="btn btn-outline-warning btn-sm">
+                                <i class="fas fa-vial me-1"></i>
+                                Test Button Click
+                            </button>
+                        </div>
+
+                        {% if not input_file_exists and get_current_project_info().has_project %}
+                        <div class="alert alert-info mt-3 mb-0 p-2">
+                            <small>
+                                <i class="fas fa-info-circle me-1"></i>
+                                <strong>Note:</strong> The PyPSA input template is required to run models.
+                                <a href="{{ url_for('data.download_template_route', template_type='pypsa_input') }}" class="alert-link">
+                                    Download it here
+                                </a> and upload to your project's <code>inputs</code> folder.
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- System Info Card -->
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            System Information
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2 text-center">
+                            <div class="col-6">
+                                <div class="border rounded p-2">
+                                    <div class="h6 mb-0 text-primary">{{ app_version or "1.0.1" }}</div>
+                                    <small class="text-muted">App Version</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="border rounded p-2">
+                                    <div class="h6 mb-0 text-success">PyPSA</div>
+                                    <small class="text-muted">Engine</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                Typical runtime: Varies (5 mins - hours)
+                                <br>
+                                <i class="fas fa-memory me-1"></i>
+                                RAM usage: Varies (2GB - 16GB+)
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Status Panel (Hidden by default) -->
+    <div id="pypsaStatusContainer" class="mt-4" style="display: none;">
+        <div class="card shadow">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tasks me-2"></i>
+                        Model Execution Status
+                    </h5>
+                    <small class="text-light">
+                        Scenario: <span id="pypsaScenarioNameRunning" class="fw-bold">-</span>
+                    </small>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Progress Bar -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-muted">Progress</small>
+                        <small class="text-muted">
+                            Status: <span id="pypsaJobStatus" class="fw-bold">-</span>
+                        </small>
+                    </div>
+                    <div class="progress" style="height: 20px;">
+                        <div id="pypsaProgressBar"
+                             class="progress-bar progress-bar-striped"
+                             role="progressbar"
+                             style="width: 0%"
+                             aria-valuenow="0"
+                             aria-valuemin="0"
+                             aria-valuemax="100">0%</div>
+                    </div>
+                </div>
+
+                <!-- Current Step -->
+                <div class="mb-3">
+                    <strong>Current Step:</strong>
+                    <span id="pypsaCurrentStep" class="text-primary">-</span>
+                </div>
+
+                <!-- Execution Log -->
+                <div class="mb-0">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">Execution Log:</h6>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="clearLogBtn">
+                            <i class="fas fa-trash me-1"></i>Clear Log
+                        </button>
+                    </div>
+                    <div id="pypsaLogOutput" class="log-output">
+                        <div class="text-muted small">Waiting for log output...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Previous Results Section -->
+    <div class="mt-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Previous Model Runs
+                    </h5>
+                    <button type="button"
+                            id="refreshScenariosBtn"
+                            class="btn btn-sm btn-outline-light"
+                            title="Refresh scenarios list">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="existingScenariosListDiv">
+                    <div class="d-flex align-items-center justify-content-center p-4">
+                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                        <span class="text-muted">Loading scenarios...</span>
+                    </div>
+                </div>
+                <div id="noScenariosMessage" style="display: none;">
+                    <div class="text-center py-4">
+                        <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">
+                            No previous model runs found for this project.<br>
+                            <small>Run your first PyPSA scenario above to get started!</small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Global Loading Indicator -->
+<div class="loading-indicator">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
+<script>
+// Debug Panel Functions
+function showDebugPanel() {
+    const panel = document.getElementById('debugPanel');
+    if (panel) {
+        panel.style.display = 'block';
+        updateDebugInfo();
+    }
+}
+
+function hideDebugPanel() {
+    const panel = document.getElementById('debugPanel');
+    if (panel) panel.style.display = 'none';
+}
+
+function toggleDebugPanel() {
+    const panel = document.getElementById('debugPanel');
+    if (panel) {
+        if (panel.style.display === 'none') {
+            showDebugPanel();
+        } else {
+            hideDebugPanel();
+        }
+    }
+}
+
+function updateDebugInfo() {
+    const debugContent = document.getElementById('debugContent');
+    if (!debugContent) return;
+
+    const runBtn = document.getElementById('runPypsaBtn');
+    const form = document.getElementById('pypsaRunForm');
+    const scenarioInput = document.getElementById('scenarioName');
+
+    let debugHTML = '<h6>DOM Elements Status:</h6>';
+    debugHTML += `<div>Form found: ${form ? '✅ YES' : '❌ NO'}</div>`;
+    debugHTML += `<div>Button found: ${runBtn ? '✅ YES' : '❌ NO'}</div>`;
+    debugHTML += `<div>Scenario input found: ${scenarioInput ? '✅ YES' : '❌ NO'}</div>`;
+
+    if (runBtn) {
+        debugHTML += '<br><h6>Button Properties:</h6>';
+        debugHTML += `<div>Disabled: ${runBtn.disabled}</div>`;
+        debugHTML += `<div>data-disabled: ${runBtn.getAttribute('data-disabled')}</div>`;
+        debugHTML += `<div>data-has-project: ${runBtn.getAttribute('data-has-project')}</div>`;
+        debugHTML += `<div>data-input-exists: ${runBtn.getAttribute('data-input-exists')}</div>`;
+        debugHTML += `<div>Type: ${runBtn.type}</div>`;
+        debugHTML += `<div>Class: ${runBtn.className}</div>`;
+    }
+
+    debugHTML += '<br><h6>Flask Context:</h6>';
+    debugHTML += `<div>window.flaskGlobal: ${window.flaskGlobal ? '✅ YES' : '❌ NO'}</div>`;
+    if (window.flaskGlobal) {
+        debugHTML += `<div>Current Project: ${window.flaskGlobal.currentProject || 'None'}</div>`;
+        debugHTML += `<div>Has Project: ${window.flaskGlobal.hasProject}</div>`;
+        debugHTML += `<div>Input File Exists: ${window.flaskGlobal.inputFileExists}</div>`;
+    }
+
+    debugHTML += '<br><h6>Event Listeners:</h6>';
+    debugHTML += `<div>Form submit listener: ${form && form.onsubmit ? '✅ YES' : 'Will check in JS'}</div>`;
+
+    debugContent.innerHTML = debugHTML;
+}
+
+// Initialize Flask context early
+window.flaskGlobal = {{ {
+    'currentProject': get_current_project_info().name,
+    'currentProjectPath': get_current_project_info().path,
+    'hasProject': get_current_project_info().has_project,
+    'inputFileExists': input_file_exists,
+    'urlPrefix': '/pypsa',
+    'apiPrefix': '/pypsa/api'
+} | tojson | safe }};
+
+console.log("Flask context loaded:", window.flaskGlobal);
+</script>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Ensure Bootstrap is loaded -->
+<script>
+if (typeof bootstrap === 'undefined') {
+    console.error('Bootstrap is required but not loaded');
+    document.addEventListener('DOMContentLoaded', function() {
+        const fallbackAlert = document.createElement('div');
+        fallbackAlert.className = 'alert alert-warning';
+        fallbackAlert.innerHTML = '<strong>Warning:</strong> Bootstrap is not loaded. Some features may not work properly.';
+        document.body.insertBefore(fallbackAlert, document.body.firstChild);
+    });
+}
+</script>
+
+<!-- Include PyPSA-specific JavaScript -->
+<script src="{{ url_for('static', filename='js/pypsa_modeling.js') }}"></script>
+
+<script>
+console.log(" PyPSA Template Debug Info:");
+console.log("Current project:", {{ get_current_project_info().name | tojson }});
+console.log("Input file exists:", {{ input_file_exists | tojson }});
+console.log("Project path:", {{ get_current_project_info().path | tojson }});
+console.log("Template loaded at:", new Date().toISOString());
+</script>
+{% endblock %}

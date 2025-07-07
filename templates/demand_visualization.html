@@ -1,0 +1,503 @@
+{% extends "sidebar_layout.html" %}
+
+{% block title %}Demand Visualization & Analysis{% endblock %}
+
+{% block additional_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/demand_visualization.css') }}">
+{% endblock %}
+
+{% block page_header_title %}
+Demand Visualization & Analysis
+{% endblock %}
+
+{% block page_header_subtitle %}
+Interactive Electricity Demand Forecasting Analysis Platform
+{% endblock %}
+
+{% block content %}
+<div class="demand-viz-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    {% if category == 'message' %}
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        {% else %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {% endif %}
+            <i
+                class="fas {% if category == 'success' %}fa-check-circle{% elif category == 'danger' %}fa-exclamation-triangle{% elif category == 'warning' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        <!-- TOP BAR ROW 1: Scenario + Filters + Actions -->
+        <div class="top-bar-row-1">
+            <div class="scenario-selector-group">
+                <select id="scenarioSelect" class="form-select" aria-label="Select demand forecast scenario">
+                    <option value="">Choose a demand forecast scenario...</option>
+                    {% for scenario in scenarios %}
+                    <option value="{{ scenario.name }}" data-sectors="{{ scenario.sectors_count }}"
+                        data-files="{{ scenario.file_count }}" data-year-min="{{ scenario.year_range.min }}"
+                        data-year-max="{{ scenario.year_range.max }}">
+                        {{ scenario.name }} ({{ scenario.sectors_count }} sectors)
+                    </option>
+                    {% endfor %}
+                </select>
+                <button class="info-icon-btn" id="scenarioInfoBtn" title="Scenario Overview"
+                    aria-label="View scenario information">
+                    <i class="fas fa-info"></i>
+                </button>
+            </div>
+
+            <div class="essential-filters" id="essentialFilters">
+                <div class="filter-group">
+                    <label for="unitSelect">Unit</label>
+                    <select id="unitSelect" class="form-select">
+                        <option value="TWh">TWh</option>
+                        <option value="GWh">GWh</option>
+                        <option value="MWh">MWh</option>
+                        <option value="kWh">kWh</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="startYearSelect">Start Year</label>
+                    <select id="startYearSelect" class="form-select">
+                        <!-- Years populated dynamically -->
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="endYearSelect">End Year</label>
+                    <select id="endYearSelect" class="form-select">
+                        <!-- Years populated dynamically -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="top-bar-actions">
+                <button class="action-btn" id="advancedFiltersBtn" style="display: none;">
+                    <i class="fas fa-filter"></i>
+                    Advanced Filters
+                </button>
+                <button class="action-btn primary" id="modelSelectionBtn" disabled>
+                    <i class="fas fa-cogs"></i>
+                    Model Selection
+                </button>
+                <button class="action-btn warning" id="compareScenarioBtn" disabled>
+                    <i class="fas fa-balance-scale"></i>
+                    Compare Scenario
+                </button>
+                <button class="action-btn" id="colorSettingsBtn" disabled>
+                    <i class="fas fa-palette"></i>
+                    Color Settings
+                </button>
+            </div>
+        </div>
+
+        <!-- TOP BAR ROW 2: Main Analysis Tabs -->
+        <div class="top-bar-row-2">
+            <div class="analysis-tabs">
+                <button class="analysis-tab active" data-tab="sector-analysis">
+                    <i class="fas fa-chart-bar"></i>
+                    Sector Analysis
+                </button>
+                <button class="analysis-tab" data-tab="comparison" id="comparisonTab" style="display: none;">
+                    <i class="fas fa-balance-scale"></i>
+                    Comparison
+                </button>
+                <button class="analysis-tab" data-tab="td-losses">
+                    <i class="fas fa-chart-line"></i>
+                    T&D Losses
+                </button>
+                <button class="analysis-tab" data-tab="consolidated-results">
+                    <i class="fas fa-chart-area"></i>
+                    Consolidated Results
+                </button>
+            </div>
+        </div>
+
+        <!-- SCROLLABLE SECTOR NAVBAR -->
+        <div class="sector-navbar-container" id="sectorNavbar" style="display: none;">
+            <div class="sector-navbar" id="sectorTabs">
+                <!-- Sector tabs populated dynamically -->
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT AREA -->
+        <div class="main-content-area">
+            <!-- Sector Analysis Content -->
+            <div class="content-section" id="sectorAnalysisContent">
+                <div class="content-header">
+                    <h3>
+                        <i class="fas fa-chart-bar me-2"></i>
+                        <span id="currentSectionTitle">Sector Analysis</span>
+                    </h3>
+                    <div class="content-header-actions">
+                        <button class="action-btn" id="exportDataBtn" disabled>
+                            <i class="fas fa-download"></i>
+                            Export Data
+                        </button>
+                        <button class="action-btn" id="exportChartBtn" disabled>
+                            <i class="fas fa-image"></i>
+                            Export Chart
+                        </button>
+                    </div>
+                </div>
+
+                <div class="content-body">
+                    <div id="sectorContentArea">
+                        <div class="empty-state">
+                            <i class="fas fa-chart-line"></i>
+                            <h5>Select a Scenario to Begin Analysis</h5>
+                            <p>Choose a demand forecast scenario from the dropdown above to start exploring sector-wise
+                                demand data and forecasting models.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T&D Losses Content -->
+            <div class="content-section" id="tdLossesContent" style="display: none;">
+                <div class="content-header">
+                    <h3>
+                        <i class="fas fa-chart-line me-2"></i>
+                        T&D Losses Configuration
+                    </h3>
+                    <div class="content-header-actions">
+                        <button class="action-btn success" id="saveTdLossesBtn" disabled>
+                            <i class="fas fa-save"></i>
+                            Save Configuration
+                        </button>
+                    </div>
+                </div>
+
+                <div class="content-body">
+                    <div class="td-losses-container">
+                        <div class="td-losses-header">
+                           
+                            <p>Configure T&D losses by year. The system will interpolate values between the specified
+                                years to create a smooth transition curve.</p>
+                        </div>
+
+                        <div class="td-losses-grid">
+                            <div class="td-config-panel">
+                                <h5>Loss Configuration</h5>
+                                <div class="td-losses-list" id="tdLossesList">
+                                    <!-- T&D loss entries populated dynamically -->
+                                </div>
+                                <button class="action-btn primary" id="addTdLossBtn">
+                                    <i class="fas fa-plus"></i>
+                                    Add Year
+                                </button>
+                            </div>
+
+                            <div class="td-preview-panel">
+                                <h5>Loss Interpolation Preview</h5>
+                                <div class="td-preview-chart">
+                                    <canvas id="tdLossesPreviewChart"></canvas>
+                                </div>
+                                <p class="text-muted" style="font-size: 0.875rem;">
+                                    This chart shows how losses will be interpolated across all years in your scenario.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consolidated Results Content -->
+            <div class="content-section" id="consolidatedResultsContent" style="display: none;">
+                <div class="content-header">
+                    <h3>
+                        <i class="fas fa-chart-area me-2"></i>
+                        Consolidated Results
+                    </h3>
+                    <div class="content-header-actions">
+                        <button class="action-btn primary" id="generateConsolidatedBtn" disabled>
+                            <i class="fas fa-calculator"></i>
+                            Generate Results
+                        </button>
+                        <button class="action-btn" id="exportConsolidatedBtn" disabled>
+                            <i class="fas fa-download"></i>
+                            Export CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div class="content-body">
+                    <div class="consolidated-container">
+                        <div class="consolidated-summary" id="consolidatedSummary">
+                            <!-- Summary cards populated dynamically -->
+                        </div>
+
+                        <div id="consolidatedResults" style="display: none;">
+                            <div class="consolidated-charts">
+                                <div class="chart-panel">
+                                    <h6>Sector-wise Demand Distribution</h6>
+                                    <div class="chart-container">
+                                        <canvas id="consolidatedSectorChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="chart-panel">
+                                    <h6>Total Demand with T&D Losses</h6>
+                                    <div class="chart-container">
+                                        <canvas id="consolidatedTotalChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="consolidated-table-section">
+                                <div class="table-controls">
+                                    <h6>Consolidated Demand Data</h6>
+                                    <div class="d-flex gap-2">
+                                        <button class="action-btn" id="downloadTableBtn">
+                                            <i class="fas fa-table"></i>
+                                            Download Table
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="data-table-container">
+                                    <table class="data-table" id="consolidatedTable">
+                                        <!-- Table populated dynamically -->
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Content -->
+            <div class="content-section" id="comparisonContent" style="display: none;">
+                <div class="content-header">
+                    <h3>
+                        <i class="fas fa-balance-scale me-2"></i>
+                        Scenario Comparison
+                    </h3>
+                    <div class="content-header-actions">
+                        <button class="action-btn warning" id="exitComparisonBtn">
+                            <i class="fas fa-times"></i>
+                            Exit Comparison
+                        </button>
+                        <button class="action-btn" id="exportComparisonBtn" disabled>
+                            <i class="fas fa-download"></i>
+                            Export Comparison
+                        </button>
+                    </div>
+                </div>
+
+                <div class="content-body">
+                    <div class="comparison-container">
+                        <div class="comparison-header" id="comparisonHeader">
+                            <!-- Comparison header populated dynamically -->
+                        </div>
+
+                        <div class="comparison-controls">
+                            <div class="comparison-selector">
+                                <label for="comparisonSectorSelect">Select Sector:</label>
+                                <select id="comparisonSectorSelect" class="form-select" style="width: 200px;">
+                                    <!-- Options populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="comparison-actions">
+                                <button class="action-btn" id="showAllSectorsBtn">
+                                    <i class="fas fa-list"></i>
+                                    Show All Sectors
+                                </button>
+                                <button class="action-btn" id="comparisonSettingsBtn">
+                                    <i class="fas fa-cog"></i>
+                                    Settings
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="comparisonResults">
+                            <!-- Comparison results populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scenario Overview Modal -->
+    <div class="modal-overlay" id="scenarioOverviewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Scenario Overview
+                </h3>
+                <button class="action-btn" id="closeScenarioModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="scenarioOverviewContent">
+                <!-- Scenario details populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Model Selection Modal -->
+    <div class="modal-overlay" id="modelSelectionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-cogs me-2"></i>
+                    Global Model Selection
+                </h3>
+                <button class="action-btn" id="closeModelModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Select the preferred forecasting model for each sector. You can apply the
+                    same model to all sectors or customize individually.</p>
+
+                <div class="mb-3">
+                    <button class="action-btn primary" id="applyToAllBtn">
+                        <i class="fas fa-copy"></i>
+                        Apply to All Sectors
+                    </button>
+                </div>
+
+                <div id="modelSelectionContent">
+                    <!-- Model selection items populated dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn" id="cancelModelSelection">Cancel</button>
+                <button class="action-btn primary" id="saveModelSelection">
+                    <i class="fas fa-save"></i>
+                    Save Configuration
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compare Scenario Modal -->
+    <div class="modal-overlay" id="compareScenarioModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-balance-scale me-2"></i>
+                    Compare Scenarios
+                </h3>
+                <button class="action-btn" id="closeCompareModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Select a second scenario to compare with <strong
+                        id="currentScenarioName"></strong>.</p>
+
+                <div class="filter-group mb-3">
+                    <label for="comparisonScenarioSelect">Compare with:</label>
+                    <select id="comparisonScenarioSelect" class="form-select">
+                        <option value="">Select scenario to compare...</option>
+                        {% for scenario in scenarios %}
+                        <option value="{{ scenario.name }}">{{ scenario.name }} ({{ scenario.sectors_count }} sectors)
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Comparison Features:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Side-by-side sector analysis</li>
+                        <li>Model performance comparison</li>
+                        <li>Consolidated results comparison</li>
+                        <li>Export comparison charts and data</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn" id="cancelComparison">Cancel</button>
+                <button class="action-btn primary" id="startComparison" disabled>
+                    <i class="fas fa-balance-scale"></i>
+                    Start Comparison
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Color Settings Modal -->
+    <div class="modal-overlay" id="colorSettingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-palette me-2"></i>
+                    Color Customization
+                </h3>
+                <button class="action-btn" id="closeColorModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Customize colors for sectors and models. Changes are saved automatically.</p>
+
+                <div class="mb-4">
+                    <h6>Sector Colors</h6>
+                    <div id="sectorColorsGrid" class="color-config-grid">
+                        <!-- Sector color pickers populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6>Model Colors</h6>
+                    <div id="modelColorsGrid" class="color-config-grid">
+                        <!-- Model color pickers populated dynamically -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn" id="resetColors">
+                    <i class="fas fa-undo"></i>
+                    Reset to Defaults
+                </button>
+                <button class="action-btn primary" id="saveColors">
+                    <i class="fas fa-save"></i>
+                    Save Colors
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Data Store -->
+    <div style="display: none;">
+        <script type="application/json" id="initialData">
+    {
+        "scenarios": {{ scenarios | tojson | safe }},
+        "hasScenarios": {{ has_scenarios | tojson | safe }},
+        "currentProject": {{ current_project | tojson | safe }}
+    }
+    </script>
+    </div>
+
+    {% endblock %}
+
+    {% block scripts %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='js/color_manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/demand_visualization.js') }}"></script>
+    <script>
+        // Global functions for template access
+        window.showNotification = function (type, message, duration) {
+            return window.demandVizApp.showNotification(type, message, duration);
+        };
+
+        window.exportChart = function (chartId) {
+            return window.demandVizApp.exportCurrentChart();
+        };
+
+        window.exportData = function () {
+            return window.demandVizApp.exportCurrentData();
+        };
+    </script>
+    {% endblock %}

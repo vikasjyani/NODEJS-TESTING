@@ -1,0 +1,452 @@
+{% extends "sidebar_layout.html" %}
+
+{% block title %}user_guide{% endblock %}
+
+{% block additional_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/utilities.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/layout-fixes.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar-layout.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/demand_visualization.css') }}">
+
+
+{% endblock %}
+
+{% block page_header_title %}
+User Guide
+{% endblock %}
+
+
+{% block content %}
+<div class="container mt-4">
+<div class="sidebar_level2">
+    <h5 class="mb-4">
+        <i class="fas fa-book text-primary"></i>
+        User Guide
+    </h5>
+
+    <nav class="nav flex-column">
+        <a class="nav-link active" href="#getting-started">
+            <i class="fas fa-play-circle me-2"></i>
+            Getting Started
+        </a>
+        <a class="nav-link" href="#project-management">
+            <i class="fas fa-folder me-2"></i>
+            Project Management
+        </a>
+        <a class="nav-link" href="#demand-projection">
+            <i class="fas fa-chart-line me-2"></i>
+            Demand Projection
+        </a>
+        <a class="nav-link" href="#load-profiles">
+            <i class="fas fa-bolt me-2"></i>
+            Load Profiles
+        </a>
+        <a class="nav-link" href="#pypsa-modeling">
+            <i class="fas fa-network-wired me-2"></i>
+            PyPSA Modeling
+        </a>
+        <a class="nav-link" href="#visualization">
+            <i class="fas fa-chart-bar me-2"></i>
+            Visualization
+        </a>
+        <a class="nav-link" href="#troubleshooting">
+            <i class="fas fa-question-circle me-2"></i>
+            Troubleshooting
+        </a>
+    </nav>
+
+    <div class="mt-4">
+        <a href="{{ url_for('core.home') }}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-home me-1"></i>
+            Back to Home
+        </a>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <h1 class="mb-4">KSEB Energy Futures Platform - User Guide</h1>
+
+        <!-- Getting Started Section -->
+        <section id="getting-started" class="section">
+            <h2><i class="fas fa-play-circle text-primary me-2"></i>Getting Started</h2>
+
+            <div class="feature-card">
+                <h4>Welcome to KSEB Energy Futures Platform</h4>
+                <p>This platform provides comprehensive tools for electricity demand forecasting, load profile
+                    generation, and power system modeling using PyPSA.</p>
+
+                <h5>Quick Start Steps:</h5>
+                <ol>
+                    <li><strong>Create a Project:</strong> Start by creating a new project or loading an existing one
+                    </li>
+                    <li><strong>Upload Data:</strong> Upload your input Excel files (demand data, load curves, etc.)
+                    </li>
+                    <li><strong>Run Analysis:</strong> Use the various modules to perform forecasting and modeling</li>
+                    <li><strong>View Results:</strong> Analyze results through interactive visualizations</li>
+                </ol>
+            </div>
+
+            {% if not has_project %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>No Project Selected:</strong> Please create or select a project from the home page to get
+                started.
+            </div>
+            {% else %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Current Project:</strong> {{ current_project }}
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Project Management Section -->
+        <section id="project-management" class="section">
+            <h2><i class="fas fa-folder text-primary me-2"></i>Project Management</h2>
+
+            <div class="feature-card">
+                <h4>Project Structure</h4>
+                <p>Each project follows a standardized directory structure:</p>
+
+                <div class="code-block">
+                    <code>
+project_name/<br>
+├── inputs/              # Input Excel files<br>
+│   ├── input_demand_file.xlsx<br>
+│   ├── load_curve_template.xlsx<br>
+│   └── pypsa_input_template.xlsx<br>
+├── results/             # Generated results<br>
+│   ├── demand_projection/<br>
+│   ├── load_profiles/<br>
+│   ├── PyPSA_Modeling/<br>
+│   └── Pypsa_results/<br>
+├── config/              # Configuration files<br>
+└── logs/                # Log files
+                        </code>
+                </div>
+
+                <h5>Template Files:</h5>
+                <ul>
+                    <li><strong>input_demand_file.xlsx:</strong> Historical electricity demand data by sector</li>
+                    <li><strong>load_curve_template.xlsx:</strong> Historical hourly load profiles and constraints</li>
+                    <li><strong>pypsa_input_template.xlsx:</strong> Power system network configuration</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Demand Projection Section -->
+        <section id="demand-projection" class="section">
+            <h2><i class="fas fa-chart-line text-primary me-2"></i>Demand Projection</h2>
+
+            <div class="feature-card">
+                <h4>Forecasting Models</h4>
+                <p>The platform supports multiple forecasting models:</p>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-brain text-info me-2"></i>Machine Learning Models</h5>
+                        <ul>
+                            <li><strong>MLR (Multiple Linear Regression):</strong> Uses multiple independent variables
+                            </li>
+                            <li><strong>SLR (Simple Linear Regression):</strong> Uses time as the primary variable</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-clock text-warning me-2"></i>Time Series Models</h5>
+                        <ul>
+                            <li><strong>WAM (Weighted Average Method):</strong> Uses historical weighted averages</li>
+                            <li><strong>TimeSeries:</strong> Advanced time series decomposition</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h5>Configuration Options:</h5>
+                <ul>
+                    <li>Select models for each sector independently</li>
+                    <li>Choose independent variables for MLR models</li>
+                    <li>Set window size for WAM method</li>
+                    <li>Exclude COVID years (2020-2022) if needed</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Load Profiles Section -->
+        <section id="load-profiles" class="section">
+            <h2><i class="fas fa-bolt text-primary me-2"></i>Load Profiles</h2>
+
+            <div class="feature-card">
+                <h4>Generation Methods</h4>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-layer-group text-success me-2"></i>Base Profile Scaling</h5>
+                        <ul>
+                            <li>Uses historical hourly profiles as base patterns</li>
+                            <li>Scales profiles to match projected annual demand</li>
+                            <li>Maintains seasonal and daily patterns</li>
+                            <li>Applies monthly peak and load factor constraints</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-wave-square text-info me-2"></i>STL Decomposition</h5>
+                        <ul>
+                            <li>Statistical decomposition of time series</li>
+                            <li>Separates trend, seasonal, and residual components</li>
+                            <li>Projects each component independently</li>
+                            <li>More sophisticated pattern recognition</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h5>Output Formats:</h5>
+                <ul>
+                    <li>Hourly profiles (8760 points per year)</li>
+                    <li>15-minute, 30-minute, or daily aggregations</li>
+                    <li>CSV format for easy integration</li>
+                    <li>Metadata with generation parameters</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- PyPSA Modeling Section -->
+        <section id="pypsa-modeling" class="section">
+            <h2><i class="fas fa-network-wired text-primary me-2"></i>PyPSA Modeling</h2>
+
+            <div class="feature-card">
+                <h4>Power System Optimization</h4>
+                <p>PyPSA (Python for Power System Analysis) integration provides:</p>
+
+                <ul>
+                    <li><strong>Network Modeling:</strong> Define buses, lines, generators, and loads</li>
+                    <li><strong>Optimization:</strong> Linear and mixed-integer optimization</li>
+                    <li><strong>Scenario Analysis:</strong> Compare different system configurations</li>
+                    <li><strong>Constraint Handling:</strong> Technical and economic constraints</li>
+                </ul>
+
+                <h5>Input Requirements:</h5>
+                <ul>
+                    <li>Network topology (buses, lines, transformers)</li>
+                    <li>Generator characteristics (capacity, costs, efficiency)</li>
+                    <li>Load profiles from the Load Profile module</li>
+                    <li>Economic parameters (fuel costs, carbon prices)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Visualization Section -->
+        <section id="visualization" class="section">
+            <h2><i class="fas fa-chart-bar text-primary me-2"></i>Visualization</h2>
+
+            <div class="feature-card">
+                <h4>Interactive Charts and Reports</h4>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <h5><i class="fas fa-line-chart text-primary me-2"></i>Time Series</h5>
+                        <ul>
+                            <li>Annual demand trends</li>
+                            <li>Monthly patterns</li>
+                            <li>Daily load curves</li>
+                            <li>Model comparisons</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h5><i class="fas fa-bar-chart text-success me-2"></i>Statistical</h5>
+                        <ul>
+                            <li>Forecast accuracy metrics</li>
+                            <li>Correlation analysis</li>
+                            <li>Distribution plots</li>
+                            <li>Error analysis</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h5><i class="fas fa-network-wired text-info me-2"></i>Network</h5>
+                        <ul>
+                            <li>Grid topology</li>
+                            <li>Power flows</li>
+                            <li>Generation dispatch</li>
+                            <li>System constraints</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Troubleshooting Section -->
+        <section id="troubleshooting" class="section">
+            <h2><i class="fas fa-question-circle text-primary me-2"></i>Troubleshooting</h2>
+
+            <div class="feature-card">
+                <h4>Common Issues and Solutions</h4>
+
+                <div class="accordion" id="troubleshootingAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#issue1">
+                                File Upload Errors
+                            </button>
+                        </h2>
+                        <div id="issue1" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <strong>Problem:</strong> Excel files not uploading or validation errors<br>
+                                <strong>Solutions:</strong>
+                                <ul>
+                                    <li>Ensure file is in .xlsx format (not .xls)</li>
+                                    <li>Check file size is under 200MB</li>
+                                    <li>Verify required sheets exist (main, Results, etc.)</li>
+                                    <li>Check for special characters in data</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#issue2">
+                                Forecasting Job Failures
+                            </button>
+                        </h2>
+                        <div id="issue2" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <strong>Problem:</strong> Demand projection jobs fail or hang<br>
+                                <strong>Solutions:</strong>
+                                <ul>
+                                    <li>Check data quality (no missing years, valid numbers)</li>
+                                    <li>Reduce number of independent variables for MLR</li>
+                                    <li>Ensure sufficient historical data (minimum 5 years)</li>
+                                    <li>Check memory usage in system status</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#issue3">
+                                Memory Issues
+                            </button>
+                        </h2>
+                        <div id="issue3" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <strong>Problem:</strong> System running out of memory<br>
+                                <strong>Solutions:</strong>
+                                <ul>
+                                    <li>Process smaller datasets or fewer sectors at once</li>
+                                    <li>Close unused browser tabs</li>
+                                    <li>Restart the application</li>
+                                    <li>Clear application cache from settings</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature Status -->
+        {% if features_enabled %}
+        <section class="section">
+            <h2><i class="fas fa-toggle-on text-primary me-2"></i>Current Feature Status</h2>
+            <div class="feature-card">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <i
+                                class="fas fa-chart-line fa-2x {{ 'text-success' if features_enabled.demand_projection_enabled else 'text-muted' }}"></i>
+                            <h6 class="mt-2">Demand Projection</h6>
+                            <span
+                                class="badge {{ 'bg-success' if features_enabled.demand_projection_enabled else 'bg-secondary' }}">
+                                {{ 'Enabled' if features_enabled.demand_projection_enabled else 'Disabled' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <i
+                                class="fas fa-bolt fa-2x {{ 'text-success' if features_enabled.load_profiles_enabled else 'text-muted' }}"></i>
+                            <h6 class="mt-2">Load Profiles</h6>
+                            <span
+                                class="badge {{ 'bg-success' if features_enabled.load_profiles_enabled else 'bg-secondary' }}">
+                                {{ 'Enabled' if features_enabled.load_profiles_enabled else 'Disabled' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <i
+                                class="fas fa-network-wired fa-2x {{ 'text-success' if features_enabled.pypsa_enabled else 'text-muted' }}"></i>
+                            <h6 class="mt-2">PyPSA Modeling</h6>
+                            <span
+                                class="badge {{ 'bg-success' if features_enabled.pypsa_enabled else 'bg-secondary' }}">
+                                {{ 'Enabled' if features_enabled.pypsa_enabled else 'Disabled' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <i
+                                class="fas fa-chart-bar fa-2x {{ 'text-success' if features_enabled.visualization_enabled else 'text-muted' }}"></i>
+                            <h6 class="mt-2">Visualization</h6>
+                            <span
+                                class="badge {{ 'bg-success' if features_enabled.visualization_enabled else 'bg-secondary' }}">
+                                {{ 'Enabled' if features_enabled.visualization_enabled else 'Disabled' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+    </div>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Smooth scrolling for navigation links
+    document.querySelectorAll('.sidebar_level2 .nav-link').forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            // Remove active class from all links
+            document.querySelectorAll('.sidebar_level2 .nav-link').forEach(l => l.classList.remove('active'));
+
+            // Add active class to clicked link
+            this.classList.add('active');
+
+            // Scroll to target section
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+
+    // Update active navigation based on scroll position
+    window.addEventListener('scroll', function () {
+        const sections = document.querySelectorAll('.section');
+        const navLinks = document.querySelectorAll('.sidebar_level2 .nav-link');
+
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop - 100;
+            const sectionHeight = section.offsetHeight;
+            if (window.pageYOffset >= sectionTop && window.pageYOffset < sectionTop + sectionHeight) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === '#' + current) {
+                link.classList.add('active');
+            }
+        });
+    });
+</script>
+{% endblock %}

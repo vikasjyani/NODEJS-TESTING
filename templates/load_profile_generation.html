@@ -1,0 +1,1138 @@
+<!-- templates/load_profile_generation.html -->
+
+{% extends "sidebar_layout.html" %}
+
+{% block title %}Load Profile Generation - {{ project_name }}{% endblock %}
+
+{% block page_header_title %}Load Profile Generation{% endblock %}
+
+{% block additional_css %}
+<link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/utilities.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/layout-fixes.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/load_profile_generation.css') }}">
+
+<style>
+/* Custom styles for load profile generation */
+.stat-card {
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.stat-content h3 {
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-content p {
+    margin: 0;
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.method-card-v2 {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    height: 100%;
+}
+
+.method-card-v2:hover {
+    border-color: #0d6efd;
+    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.15);
+    transform: translateY(-2px);
+}
+
+.method-card-v2.selected {
+    border-color: #0d6efd;
+    background: rgba(13, 110, 253, 0.05);
+    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.2);
+}
+
+.method-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.method-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    font-size: 2rem;
+    color: white;
+}
+
+.method-header h5 {
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.method-header .badge {
+    font-size: 0.8rem;
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.feature-list li {
+    padding: 8px 0;
+    display: flex;
+    align-items: center;
+}
+
+.feature-list li i {
+    margin-right: 10px;
+    width: 20px;
+}
+
+.wizard-progress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 40px;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.wizard-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 120px;
+    position: relative;
+}
+
+.wizard-step .step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+}
+
+.wizard-step.active .step-number {
+    background: #0d6efd;
+    color: white;
+}
+
+.wizard-step.completed .step-number {
+    background: #198754;
+    color: white;
+}
+
+.wizard-step .step-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+    color: #6c757d;
+}
+
+.wizard-step.active .step-title {
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+.wizard-line {
+    flex: 1;
+    height: 2px;
+    background: #e9ecef;
+    margin: 0 10px;
+    position: relative;
+    top: -25px;
+}
+
+.historical-summary-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
+.param-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: box-shadow 0.2s ease;
+}
+
+.param-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.lf-improvement-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
+    border-radius: 12px;
+    padding: 25px;
+    border: 1px solid #dee2e6;
+    margin-top: 25px;
+}
+
+.config-section {
+    margin-bottom: 30px;
+    padding: 25px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.source-card {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.source-card:hover {
+    border-color: #0d6efd;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+}
+
+.source-card.selected {
+    border-color: #0d6efd;
+    background: rgba(13, 110, 253, 0.05);
+}
+
+.constraint-card {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 20px;
+    background: white;
+    transition: box-shadow 0.2s ease;
+}
+
+.constraint-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.progress-circle {
+    position: relative;
+}
+
+.progress-circle svg {
+    transform: rotate(-90deg);
+}
+
+.progress-circle circle {
+    fill: none;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s ease;
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-around;
+    margin: 30px 0;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+.progress-step.active {
+    opacity: 1;
+    color: #0d6efd;
+}
+
+.progress-step i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.year-info-card, .name-preview-card {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    height: 100%;
+}
+
+.base-year-selector {
+    margin-bottom: 20px;
+}
+
+.heatmap-container {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.period-preview {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 6px;
+    padding: 15px;
+    font-weight: 500;
+    color: #1565c0;
+}
+
+#dataQualityIndicator .alert {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+#historicalDataStatus .alert {
+    margin-bottom: 0;
+}
+
+.alert {
+    border-radius: 8px;
+}
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.btn-lg {
+    padding: 12px 30px;
+    font-size: 1.1rem;
+}
+
+.form-control, .form-select {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-control-lg {
+    padding: 12px 16px;
+    font-size: 1.1rem;
+}
+
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.card {
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+}
+
+.bg-gradient-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+}
+
+.bg-gradient-dark {
+    background: linear-gradient(135deg, #212529 0%, #000 100%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .wizard-progress {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .wizard-line {
+        display: none;
+    }
+    
+    .stat-card .stat-content h3 {
+        font-size: 1.8rem;
+    }
+    
+    .method-card-v2 {
+        margin-bottom: 15px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <!-- Header Section with Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card bg-primary text-white">
+                <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                <div class="stat-content">
+                    <h3>{{ saved_profiles|length }}</h3>
+                    <p>Saved Profiles</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card bg-success text-white">
+                <div class="stat-icon"><i class="fas fa-database"></i></div>
+                <div class="stat-content">
+                    <h3 id="templateStatus">--</h3>
+                    <p>Template Status</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card bg-info text-white">
+                <div class="stat-icon"><i class="fas fa-calendar"></i></div>
+                <div class="stat-content">
+                    <h3 id="availableYears">--</h3>
+                    <p>Available Years</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card bg-warning text-white">
+                <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="stat-content">
+                    <h3>{{ available_scenarios|length }}</h3>
+                    <p>Demand Scenarios</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Alert -->
+    <div id="statusAlert" class="alert alert-dismissible fade show d-none" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-info-circle me-2 alert-icon"></i>
+            <span id="statusMessage"></span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Wizard Progress -->
+    <div class="wizard-progress mb-4">
+        <div class="wizard-step active" data-step="1">
+            <div class="step-number">1</div>
+            <div class="step-title">Select Method</div>
+        </div>
+        <div class="wizard-line"></div>
+        <div class="wizard-step" data-step="2">
+            <div class="step-number">2</div>
+            <div class="step-title">Configure Parameters</div>
+        </div>
+        <div class="wizard-line"></div>
+        <div class="wizard-step" data-step="3">
+            <div class="step-number">3</div>
+            <div class="step-title">Generate Profile</div>
+        </div>
+        <div class="wizard-line"></div>
+        <div class="wizard-step" data-step="4">
+            <div class="step-number">4</div>
+            <div class="step-title">Review Results</div>
+        </div>
+    </div>
+
+    <!-- Step 1: Method Selection -->
+    <div class="wizard-content" id="step1Content">
+        <div class="card shadow-sm">
+            <div class="card-header bg-gradient-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-tools me-2"></i>Select Generation Method</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-6 mb-4">
+                        <div class="method-card-v2" data-method="base_profile_scaling">
+                            <div class="method-header">
+                                <div class="method-icon-wrapper bg-primary">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <h5>Base Profile Scaling</h5>
+                                <span class="badge bg-primary">Recommended</span>
+                            </div>
+                            <div class="method-description">
+                                <p>Use patterns from a specific historical year and scale with future demand scenarios.</p>
+                                <ul class="feature-list">
+                                    <li><i class="fas fa-check text-success"></i> Simple and intuitive approach</li>
+                                    <li><i class="fas fa-check text-success"></i> Preserves seasonal patterns</li>
+                                    <li><i class="fas fa-check text-success"></i> Fast computation time</li>
+                                    <li><i class="fas fa-check text-success"></i> Ideal for stable load patterns</li>
+                                </ul>
+                            </div>
+                            <div class="method-footer">
+                                <button class="btn btn-primary w-100 select-method-btn" data-method="base_profile_scaling">
+                                    <i class="fas fa-arrow-right me-2"></i>Select This Method
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="method-card-v2" data-method="stl_decomposition">
+                            <div class="method-header">
+                                <div class="method-icon-wrapper bg-success">
+                                    <i class="fas fa-wave-square"></i>
+                                </div>
+                                <h5>STL Decomposition</h5>
+                                <span class="badge bg-success">Advanced</span>
+                            </div>
+                            <div class="method-description">
+                                <p>Statistical method using trend, seasonal, and residual components with load factor improvement.</p>
+                                <ul class="feature-list">
+                                    <li><i class="fas fa-check text-success"></i> Captures complex patterns</li>
+                                    <li><i class="fas fa-check text-success"></i> Trend analysis capability</li>
+                                    <li><i class="fas fa-check text-success"></i> Robust to outliers</li>
+                                    <li><i class="fas fa-check text-success"></i> Load factor optimization</li>
+                                </ul>
+                            </div>
+                            <div class="method-footer">
+                                <button class="btn btn-success w-100 select-method-btn" data-method="stl_decomposition" 
+                                        {% if not stl_available %}disabled{% endif %}>
+                                    {% if stl_available %}
+                                        <i class="fas fa-arrow-right me-2"></i>Select This Method
+                                    {% else %}
+                                        <i class="fas fa-lock me-2"></i>Not Available
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Configuration -->
+    <div class="wizard-content d-none" id="step2Content">
+        <form id="configurationForm">
+            <!-- Method-specific Configuration -->
+            <div class="card shadow-sm mb-4" id="methodSpecificConfig">
+                <div class="card-header bg-gradient-secondary text-white">
+                    <h4 class="mb-0"><i class="fas fa-cog me-2"></i>Method Configuration</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Base Profile Scaling Config -->
+                    <div id="baseMethodConfig" class="method-config d-none">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5 class="mb-3"><i class="fas fa-calendar-alt me-2"></i>Base Year Selection</h5>
+                                <p class="text-muted mb-4">Select a historical year with complete and reliable data to use as the base pattern.</p>
+                                
+                                <div class="base-year-selector">
+                                    <label for="baseYear" class="form-label fw-bold">Select Base Financial Year</label>
+                                    <select class="form-select form-select-lg" id="baseYear" name="base_year">
+                                        <option value="">Loading available years...</option>
+                                    </select>
+                                    <div class="form-text mt-2">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Choose a year that best represents typical load patterns
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="year-info-card">
+                                    <h6>Selected Year Info</h6>
+                                    <div id="selectedYearInfo" class="text-muted">
+                                        <p>Select a year to view details</p>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary w-100 mt-3" id="previewBaseYear" disabled>
+                                        <i class="fas fa-eye me-2"></i>Preview Patterns
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Base Year Pattern Heatmap -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div id="baseYearHeatmap" class="heatmap-container d-none">
+                                    <h6 class="mb-3">Load Pattern Heatmap</h6>
+                                    <div id="heatmapChart"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STL Decomposition Config -->
+                    <div id="stlMethodConfig" class="method-config d-none">
+                        <h5 class="mb-3"><i class="fas fa-wave-square me-2"></i>STL Parameters</h5>
+                        
+                        <!-- Historical Data Summary Section -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="historical-summary-card">
+                                    <h6 class="mb-3"><i class="fas fa-chart-bar me-2"></i>Historical Data Summary</h6>
+                                    <div id="historicalDataSummary" class="row">
+                                        <!-- Summary cards -->
+                                        <div class="col-md-3">
+                                            <div class="stat-card bg-info text-white">
+                                                <div class="stat-content">
+                                                    <h3 id="historicalYears">--</h3>
+                                                    <p>Years of Data</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-card bg-primary text-white">
+                                                <div class="stat-content">
+                                                    <h3 id="historicalRecords">--</h3>
+                                                    <p>Data Points</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-card bg-success text-white">
+                                                <div class="stat-content">
+                                                    <h3 id="historicalLoadFactor">--</h3>
+                                                    <p>Avg Load Factor</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-card bg-warning text-white">
+                                                <div class="stat-content">
+                                                    <h3 id="historicalPeak">--</h3>
+                                                    <p>Peak Demand</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Status and Quality Information -->
+                                    <div class="row mt-3">
+                                        <div class="col-md-8">
+                                            <div id="historicalDataStatus">
+                                                <div class="alert alert-info">
+                                                    <i class="fas fa-info-circle me-2"></i>
+                                                    Loading historical data summary...
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div id="dataQualityIndicator">
+                                                <!-- Data quality indicator will be populated by JavaScript -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- STL Parameters Section -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="param-card">
+                                    <label for="stlPeriod" class="form-label fw-bold">
+                                        <i class="fas fa-clock me-1"></i>Seasonal Period
+                                    </label>
+                                    <input type="number" class="form-control form-control-lg" id="stlPeriod" 
+                                           name="stl_period" value="8760" min="24" max="8760">
+                                    <div class="form-text">
+                                        Hours in seasonal cycle (8760 = annual)
+                                        <br><small id="periodRecommendation" class="text-muted"></small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="param-card">
+                                    <label for="stlSeasonal" class="form-label fw-bold">
+                                        <i class="fas fa-chart-area me-1"></i>Seasonal Smoothing
+                                    </label>
+                                    <input type="number" class="form-control form-control-lg" id="stlSeasonal" 
+                                           name="stl_seasonal" value="13" min="3" max="50">
+                                    <div class="form-text">Seasonal component smoothing parameter</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="param-card">
+                                    <label for="stlRobust" class="form-label fw-bold">
+                                        <i class="fas fa-shield-alt me-1"></i>Robust Mode
+                                    </label>
+                                    <select class="form-select form-select-lg" id="stlRobust" name="stl_robust">
+                                        <option value="true">Enabled (recommended)</option>
+                                        <option value="false">Disabled</option>
+                                    </select>
+                                    <div class="form-text">Outlier resistance</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Load Factor Improvement Section -->
+                        <div class="lf-improvement-section mt-4">
+                            <h5 class="mb-3"><i class="fas fa-chart-line me-2"></i>Load Factor Improvement</h5>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="enableLoadFactorImprovement" 
+                                       name="enable_lf_improvement">
+                                <label class="form-check-label" for="enableLoadFactorImprovement">
+                                    Enable gradual load factor improvement through demand management
+                                </label>
+                            </div>
+                            
+                            <div class="row" id="lfImprovementParams" style="display: none;">
+                                <div class="col-md-6">
+                                    <div class="param-card">
+                                        <label for="lfTargetYear" class="form-label fw-bold">
+                                            <i class="fas fa-calendar-check me-1"></i>Target Year
+                                        </label>
+                                        <input type="number" class="form-control" id="lfTargetYear" 
+                                               name="lf_target_year" min="2025" max="2050" placeholder="e.g., 2035">
+                                        <div class="form-text">Year to achieve target load factor</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="param-card">
+                                        <label for="lfImprovement" class="form-label fw-bold">
+                                            <i class="fas fa-percentage me-1"></i>Improvement Target
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="lfImprovement" 
+                                                   name="lf_improvement_percent" min="1" max="30" step="0.5" 
+                                                   placeholder="e.g., 10">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <div class="form-text">Percentage improvement in load factor</div>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-lightbulb me-2"></i>
+                                        <strong>Example:</strong> If current load factor is 60% and improvement is 10%, 
+                                        the target load factor will be 66% (60% × 1.10)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Common Configuration -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-gradient-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Common Parameters</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Demand Source Selection -->
+                    <div class="config-section mb-4">
+                        <h5 class="mb-3"><i class="fas fa-database me-2"></i>Demand Data Source</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="source-card" data-source="template">
+                                    <div class="source-header">
+                                        <input type="radio" class="form-check-input" name="demand_source" 
+                                               value="template" id="demandTemplate">
+                                        <label for="demandTemplate">
+                                            <h6>Template Data</h6>
+                                            <small>Use demand data from load_curve_template.xlsx</small>
+                                        </label>
+                                    </div>
+                                    <div class="source-info" id="templateInfo">
+                                        <!-- Will be populated dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="source-card" data-source="scenario">
+                                    <div class="source-header">
+                                        <input type="radio" class="form-check-input" name="demand_source" 
+                                               value="scenario" id="demandScenario">
+                                        <label for="demandScenario">
+                                            <h6>Demand Scenario</h6>
+                                            <small>Use results from demand projection module</small>
+                                        </label>
+                                    </div>
+                                    <div class="source-info">
+                                        <select class="form-select" id="scenarioSelect" name="scenario_name" 
+                                                style="display: none;">
+                                            <option value="">Select scenario...</option>
+                                            {% for scenario in available_scenarios %}
+                                            <option value="{{ scenario.name }}">{{ scenario.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <div id="scenarioInfo" class="mt-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time Range and Output -->
+                    <div class="config-section mb-4">
+                        <h5 class="mb-3"><i class="fas fa-clock me-2"></i>Generation Period & Output</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="startFY" class="form-label fw-bold">Start Financial Year</label>
+                                <input type="number" class="form-control" id="startFY" name="start_fy" 
+                                       value="2025" min="2020" max="2050" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="endFY" class="form-label fw-bold">End Financial Year</label>
+                                <input type="number" class="form-control" id="endFY" name="end_fy" 
+                                       value="2035" min="2020" max="2050" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="frequency" class="form-label fw-bold">Output Frequency</label>
+                                <select class="form-select" id="frequency" name="frequency">
+                                    <option value="hourly">Hourly</option>
+                                    <option value="15min">15 Minutes</option>
+                                    <option value="30min">30 Minutes</option>
+                                    <option value="daily">Daily</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="outputUnit" class="form-label fw-bold">Output Unit</label>
+                                <select class="form-select" id="outputUnit" name="output_unit">
+                                    <option value="kW">kW</option>
+                                    <option value="MW">MW</option>
+                                    <option value="GW">GW</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="period-preview">
+                                    <i class="fas fa-calendar-alt me-2"></i>
+                                    <span id="periodPreview">Will generate 11 years of hourly data</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Constraints -->
+                    <div class="config-section mb-4">
+                        <h5 class="mb-3"><i class="fas fa-balance-scale me-2"></i>Optional Constraints</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="constraint-card">
+                                    <div class="constraint-header">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="applyMonthlyPeaks" 
+                                                   name="apply_monthly_peaks">
+                                            <label class="form-check-label" for="applyMonthlyPeaks">
+                                                <strong>Monthly Peak Constraints</strong>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="constraint-body">
+                                        <p>Ensure monthly demand shares match historical patterns</p>
+                                        <div id="monthlyPeaksStatus" class="constraint-status">
+                                            <!-- Status will be shown here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="constraint-card">
+                                    <div class="constraint-header">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="applyLoadFactors" 
+                                                   name="apply_load_factors">
+                                            <label class="form-check-label" for="applyLoadFactors">
+                                                <strong>Load Factor Constraints</strong>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="constraint-body">
+                                        <p>Apply monthly load factor patterns from historical data</p>
+                                        <div id="loadFactorsStatus" class="constraint-status">
+                                            <!-- Status will be shown here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Naming -->
+                    <div class="config-section">
+                        <h5 class="mb-3"><i class="fas fa-tag me-2"></i>Profile Naming</h5>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <label for="customProfileName" class="form-label fw-bold">Custom Profile Name</label>
+                                <input type="text" class="form-control" id="customProfileName" name="custom_name" 
+                                       placeholder="e.g., High_Growth_Scenario_2025" maxlength="50">
+                                <div class="form-text">Leave empty for auto-generated name</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="name-preview-card">
+                                    <label class="form-label fw-bold">Final Name Preview</label>
+                                    <div id="namePreview">
+                                        <!-- Preview will appear here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center">
+                <button type="button" class="btn btn-secondary btn-lg me-2" id="backToMethodBtn">
+                    <i class="fas fa-arrow-left me-2"></i>Back
+                </button>
+                <button type="submit" class="btn btn-primary btn-lg px-5" id="generateProfileBtn">
+                    <i class="fas fa-play me-2"></i>Generate Load Profile
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Step 3: Progress -->
+    <div class="wizard-content d-none" id="step3Content">
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <h3 class="mb-4"><i class="fas fa-cogs me-2"></i>Generating Load Profile</h3>
+                
+                <div class="generation-progress">
+                    <div class="progress-circle mb-4">
+                        <svg width="200" height="200">
+                            <circle cx="100" cy="100" r="90" fill="none" stroke="#e0e0e0" stroke-width="10"/>
+                            <circle id="progressCircle" cx="100" cy="100" r="90" fill="none" stroke="#6366f1" 
+                                    stroke-width="10" stroke-dasharray="565.48" stroke-dashoffset="565.48"
+                                    transform="rotate(-90 100 100)"/>
+                            <text x="100" y="100" text-anchor="middle" dy="0.3em" font-size="24" 
+                                  font-weight="bold" id="progressPercent">0%</text>
+                        </svg>
+                    </div>
+                    
+                    <div class="progress-steps">
+                        <div class="progress-step" id="progressStep1">
+                            <i class="fas fa-database"></i>
+                            <span>Loading Data</span>
+                        </div>
+                        <div class="progress-step" id="progressStep2">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Processing Patterns</span>
+                        </div>
+                        <div class="progress-step" id="progressStep3">
+                            <i class="fas fa-sliders-h"></i>
+                            <span>Applying Constraints</span>
+                        </div>
+                        <div class="progress-step" id="progressStep4">
+                            <i class="fas fa-save"></i>
+                            <span>Saving Results</span>
+                        </div>
+                    </div>
+                    
+                    <p class="mt-4" id="progressMessage">Initializing profile generation...</p>
+                    
+                    <button type="button" class="btn btn-outline-danger mt-3" id="cancelGeneration">
+                        <i class="fas fa-times me-2"></i>Cancel Generation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 4: Results -->
+    <div class="wizard-content d-none" id="step4Content">
+        <div class="row">
+            <!-- Results Summary -->
+            <div class="col-md-4">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-gradient-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Generation Complete</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="resultsSummary">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button class="btn btn-success" id="downloadGeneratedProfile">
+                                <i class="fas fa-download me-2"></i>Download Profile
+                            </button>
+                            <button class="btn btn-primary" id="viewDetailedAnalysis">
+                                <i class="fas fa-chart-bar me-2"></i>Detailed Analysis
+                            </button>
+                            <button class="btn btn-outline-secondary" id="generateAnotherProfile">
+                                <i class="fas fa-plus me-2"></i>Generate Another
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validation Results -->
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Validation Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="validationResults">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualization -->
+            <div class="col-md-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-area me-2"></i>Load Profile Visualization</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-tabs mb-3" id="visualizationTabs">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#timeSeriesTab">Time Series</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#heatmapTab">Daily Heatmap</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#statisticsTab">Statistics</a>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="timeSeriesTab">
+                                <canvas id="profileChart" width="800" height="400"></canvas>
+                            </div>
+                            <div class="tab-pane fade" id="heatmapTab">
+                                <div id="dailyHeatmap"></div>
+                            </div>
+                            <div class="tab-pane fade" id="statisticsTab">
+                                <div id="profileStatistics">
+                                    <!-- Will be populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saved Profiles Section -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-gradient-dark text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="fas fa-archive me-2"></i>Saved Load Profiles</h4>
+                <div class="header-actions">
+                    <button class="btn btn-sm btn-light" id="refreshProfiles">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button class="btn btn-sm btn-light" id="compareProfiles">
+                        <i class="fas fa-balance-scale me-1"></i>Compare
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="savedProfilesTable">
+                    <thead>
+                        <tr>
+                            <th width="5%">
+                                <input type="checkbox" id="selectAllProfiles">
+                            </th>
+                            <th width="25%">Profile ID</th>
+                            <th width="15%">Method</th>
+                            <th width="15%">Generated</th>
+                            <th width="15%">Period</th>
+                            <th width="10%">Size</th>
+                            <th width="15%">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Will be populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<!-- Base Year Preview Modal -->
+<div class="modal fade" id="baseYearPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Base Year Load Patterns Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="baseYearPreviewContent">
+                    <!-- Preview content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Profile Comparison Modal -->
+<div class="modal fade" id="profileComparisonModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Profile Comparison</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="profileComparisonContent">
+                    <!-- Comparison content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/cdn.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-2-latest.min.js"></script>
+
+<script src="{{ url_for('static', filename='js/load_profile_generation.js') }}"></script>
+{% endblock %}
