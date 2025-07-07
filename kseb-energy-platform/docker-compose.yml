@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  app: # Main application service (Node.js backend + serves frontend)
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kseb_platform_app
+    ports:
+      - "${APP_PORT:-5000}:5000" # Expose backend port, configurable via .env
+      # Port 3000 is for React dev server, not typically exposed directly from this container in prod.
+      # Nginx will handle serving the built frontend.
+    env_file:
+      - .env # Load environment variables from .env file at the root
+    environment:
+      # NODE_ENV is set in Dockerfile or can be overridden here for specific compose environments
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${APP_INTERNAL_PORT:-5000} # Port inside the container for Node app
+      - PYTHON_PATH=/usr/local/bin/python # Path to Python inside the container (adjust if Python is installed differently in Dockerfile)
+      - RESULTS_DIR=/app/results # Mount point for results
+      - STORAGE_PATH=/app/storage # Mount point for general storage
+      - LOG_DIR=/app/logs # Mount point for logs
+      - REDIS_HOST=redis # Service name for Redis
+      - REDIS_PORT=6379
+      # Add other necessary environment variables: DB_CONNECTION_STRING, API_KEYS, etc.
+    volumes:
+      - ./results:/app/results # Persist results data
+      - ./storage:/app/storage # Persist general storage data
+      - ./logs:/app/logs     # Persist application logs
+      # - ./data:/app/data # If you have initial seed data or persistent data files
+      # In development, you might mount source code for hot reloading:
+      # - ./backend:/app/backend # Example for backend development
+      # - ./frontend:/app/frontend # Example for frontend development (if dev server run in container)
+    depends_on:
+      redis:
+        condition: service_healthy # Wait for Redis to be healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${APP_INTERNAL_PORT:-5000}/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s # Give app more time to start, especially if it builds/compiles on start
+
+  redis:
+    image: redis:7-alpine
+    container_name: kseb_platform_redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data # Persist Redis data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  nginx: # Optional: For serving static frontend build and as a reverse proxy
+    image: nginx:alpine
+    container_name: kseb_platform_nginx
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro # Mount Nginx configuration
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro       # For site-specific configs
+      - ./frontend/build:/usr/share/nginx/html:ro # Mount built frontend static files
+      # Mount SSL certificates if using HTTPS directly on Nginx
+      # - ./ssl_certs/live/yourdomain.com/fullchain.pem:/etc/nginx/ssl/live/yourdomain.com/fullchain.pem:ro
+      # - ./ssl_certs/live/yourdomain.com/privkey.pem:/etc/nginx/ssl/live/yourdomain.com/privkey.pem:ro
+    depends_on:
+      - app # Nginx depends on the app service
+    restart: unless-stopped
+    # Add healthcheck for Nginx if needed
+
+volumes:
+  redis_data:
+    driver: local # Or specify a different driver if needed
+  # Add other named volumes if necessary (e.g., for database if not using Redis)
+
+networks:
+  default:
+    name: kseb_platform_network # Custom network name
+    driver: bridge
+```

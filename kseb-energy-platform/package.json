@@ -1,0 +1,184 @@
+{
+  "name": "kseb-energy-futures-platform",
+  "version": "1.0.0",
+  "description": "KSEB Energy Futures Platform - Desktop Application for Energy Planning and Analysis",
+  "main": "dist/electron/main.js",
+  "author": {
+    "name": "KSEB Energy Planning Team",
+    "email": "devteam@kseb.in"
+  },
+  "license": "MIT",
+  "private": true,
+  "homepage": "./",
+  "workspaces": [
+    "backend",
+    "frontend",
+    "electron"
+  ],
+  "scripts": {
+    "postinstall": "electron-builder install-app-deps",
+    "dev": "concurrently \\"npm:dev:backend\\" \\"npm:dev:frontend\\" \\"wait-on http://localhost:5000 http://localhost:3000 && npm:dev:electron\\"",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm start --workspace=frontend",
+    "dev:electron": "npm run dev --workspace=electron",
+    "build": "npm run clean && npm run build:frontend && npm run build:backend && npm run build:electron",
+    "build:backend": "npm run build --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build:electron": "npm run build --workspace=electron",
+    "package": "npm run build && electron-builder --dir",
+    "package:win": "npm run build && electron-builder --win",
+    "package:mac": "npm run build && electron-builder --mac",
+    "package:linux": "npm run build && electron-builder --linux",
+    "dist": "npm run build && electron-builder --publish=never",
+    "dist:all": "npm run build && electron-builder -mwl --publish=never",
+    "publish": "npm run build && electron-builder --publish=always",
+    "clean": "rimraf dist kseb-energy-platform/dist frontend/build backend/dist electron/dist coverage *.log",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
+    "test": "jest --coverage"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.0",
+    "@types/electron": "^1.6.10",
+    "concurrently": "^7.6.0",
+    "cross-env": "^7.0.3",
+    "electron": "^23.1.0",
+    "electron-builder": "^24.9.1",
+    "typescript": "^4.9.5",
+    "wait-on": "^7.0.1",
+    "rimraf": "^4.4.0",
+    "eslint": "^8.36.0",
+    "jest": "^29.5.0"
+  },
+  "dependencies": {
+    "electron-is-dev": "^2.0.0",
+    "electron-updater": "^6.1.7",
+    "node-machine-id": "^1.1.12"
+  },
+  "build": {
+    "appId": "in.gov.kseb.energyfuturesplatform",
+    "productName": "KSEB Energy Futures Platform",
+    "copyright": "Copyright © ${currentYear} KSEB Ltd.",
+    "asar": true,
+    "asarUnpack": [
+        "**/node_modules/node-pty/build/Release/**",
+        "backend/dist/**",
+        "backend/src/python/**",
+        "python-runtime/**"
+    ],
+    "directories": {
+      "output": "dist/packages",
+      "buildResources": "assets"
+    },
+    "files": [
+      "dist/electron/**/*",
+      "!node_modules/@types/**",
+      "node_modules/",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "backend",
+        "to": "app.asar.unpacked/backend",
+        "filter": ["dist/**", "src/python/**", "!node_modules/**", "!src/**/tests/**"]
+      },
+      {
+        "from": "frontend/build",
+        "to": "frontend",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "assets",
+        "to": "assets",
+        "filter": ["**/*", "!installer-header.bmp", "!installer-sidebar.bmp", "!dmg-background.png"]
+      }
+      // Python runtime will be platform-specific
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] },
+        { "target": "zip", "arch": ["x64"] }
+      ],
+      "icon": "assets/icon.ico",
+      "publisherName": "Kerala State Electricity Board Ltd.",
+      "verifyUpdateCodeSignature": false,
+      "cscLink": "${env.CSC_LINK}",
+      "cscKeyPassword": "${env.CSC_KEY_PASSWORD}",
+      "extraResources": [
+        { "from": "python-runtime/windows", "to": "python", "filter": ["**/*"] }
+      ]
+    },
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ],
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.developer-tools",
+      "darkModeSupport": true,
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "electron/entitlements.mac.plist",
+      "entitlementsInherit": "electron/entitlements.mac.plist",
+      "extraResources": [
+        { "from": "python-runtime/macos", "to": "python", "filter": ["**/*"] }
+      ]
+    },
+    "linux": {
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb", "arch": ["x64"] },
+        { "target": "rpm", "arch": ["x64"] },
+        { "target": "tar.gz", "arch": ["x64"] }
+      ],
+      "icon": "assets/icons", // Points to assets/icons/ a directory for different sizes
+      "category": "Utility;Development;Science;", // Multiple categories
+      "maintainer": "KSEB Energy Planning Team <devteam@kseb.in>",
+      "desktop": {
+        "Name": "KSEB Energy Futures Platform",
+        "Comment": "Energy planning and analysis tool by KSEB."
+      },
+      "extraResources": [
+        { "from": "python-runtime/linux", "to": "python", "filter": ["**/*"] }
+      ]
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}-${os}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "menuCategory": "KSEB Tools",
+      "runAfterFinish": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeader": "assets/installer-header.bmp",
+      "installerSidebar": "assets/installer-sidebar.bmp",
+      "include": "build/installer.nsh",
+      "allowElevation": true
+    },
+    "dmg": {
+      "title": "${productName} ${version}",
+      "icon": "assets/icon.icns",
+      "background": "assets/dmg-background.png",
+      "contents": [
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" },
+        { "x": 130, "y": 220, "type": "file" }
+      ],
+      "window": { "width": 540, "height": 380 }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "kseb-dev",
+        "repo": "energy-futures-platform",
+        "private": true,
+        "releaseType": "release"
+      }
+    ],
+    "compression": "maximum",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+  }
+}
