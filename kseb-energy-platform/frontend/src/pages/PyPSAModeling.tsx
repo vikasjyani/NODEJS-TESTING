@@ -5,27 +5,26 @@ import {
   Accordion, AccordionSummary, AccordionDetails, TextField,
   FormControl, FormLabel, RadioGroup, FormControlLabel, Radio,
   Checkbox, FormGroup, Select, MenuItem, InputLabel, SelectChangeEvent,
-  Alert, Chip, CircularProgress, Tooltip, IconButton, Divider // Added Divider
+  Alert, Chip, CircularProgress, Tooltip, IconButton, Divider
 } from '@mui/material';
 import {
   ExpandMore, PlayArrow, StopCircle, CloudUpload, Settings,
   Assessment, Info, Warning, CheckCircle, HelpOutline, FolderOpen
 } from '@mui/icons-material';
 
-import { RootState } from '../store'; // Corrected
-import { useAppDispatch } from '../store/hooks'; // Corrected
+import { RootState } from '../store';
+import { useAppDispatch } from '../store/hooks';
 import {
   useRunOptimizationMutation,
-  // useGetOptimizationStatusQuery,
   useUploadFileMutation
-} from '../store/api/apiSlice'; // Corrected
-import { usePyPSANotifications } from '../services/websocket'; // Corrected
-import { OptimizationProgress } from '../components/pypsa/OptimizationProgress'; // Corrected
-import { SystemStatus } from '../components/pypsa/SystemStatus'; // Corrected
-import { ExcelSettingsLoader } from '../components/pypsa/ExcelSettingsLoader'; // Corrected
-import { addNotification } from '../store/slices/notificationSlice'; // Corrected
+} from '../store/api/apiSlice';
+import { usePyPSANotifications } from '../services/websocket';
+import { OptimizationProgress } from '../components/pypsa/OptimizationProgress';
+import { SystemStatus } from '../components/pypsa/SystemStatus';
+import { ExcelSettingsLoader } from '../components/pypsa/ExcelSettingsLoader';
+import { addNotification } from '../store/slices/notificationSlice';
 
-export interface PyPSASolverOptions { // Define explicitly for clarity
+export interface PyPSASolverOptions {
     solver?: 'highs' | 'gurobi' | 'cplex' | 'glpk' | 'cbc' | 'scip' | 'xpress';
     optimality_gap?: number;
     time_limit?: number;
@@ -43,11 +42,11 @@ export interface PyPSAModelConfiguration {
   monthly_constraints?: boolean;
   battery_constraints?: 'none' | 'daily' | 'weekly' | 'monthly';
 
-  solver_options?: PyPSASolverOptions; // Use the defined type
+  solver_options?: PyPSASolverOptions;
   timeout?: number;
 }
 
-const defaultSolverOptions: PyPSASolverOptions = { // Use the defined type
+const defaultSolverOptions: PyPSASolverOptions = {
     solver: 'highs',
     optimality_gap: 0.01,
     time_limit: 3600
@@ -112,8 +111,8 @@ export const PyPSAModeling: React.FC = () => {
     const errors: Record<string, string> = {};
     if (!config.scenario_name.trim()) errors.scenario_name = 'Scenario name is required.';
     if (config.base_year < 2000 || config.base_year > 2070) errors.base_year = 'Base year must be realistic (e.g., 2000-2070).';
-    if (config.solver_options?.optimality_gap && (config.solver_options.optimality_gap < 0 || config.solver_options.optimality_gap > 1)) errors['solver_options.optimality_gap'] = 'Optimality gap must be between 0 and 1.';
-    if (config.solver_options?.time_limit && config.solver_options.time_limit < 60) errors['solver_options.time_limit'] = 'Solver time limit must be at least 60 seconds.';
+    if (config.solver_options?.optimality_gap !== undefined && (config.solver_options.optimality_gap < 0 || config.solver_options.optimality_gap > 1)) errors['solver_options.optimality_gap'] = 'Optimality gap must be between 0 and 1.';
+    if (config.solver_options?.time_limit !== undefined && config.solver_options.time_limit < 60) errors['solver_options.time_limit'] = 'Solver time limit must be at least 60 seconds.';
     if (!inputFileUploaded && !config.input_file) errors.input_file = 'PyPSA input template/file must be provided or selected.';
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -196,7 +195,6 @@ export const PyPSAModeling: React.FC = () => {
     multi_year: 'Multi-year capacity expansion with investment decisions across periods.',
     all_in_one: 'Comprehensive optimization across all years simultaneously (computationally intensive).',
   };
-
 
   return (
     <Container maxWidth="xl" sx={{pb:4}}>
@@ -331,8 +329,8 @@ export const PyPSAModeling: React.FC = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={4}><TextField fullWidth size="small" type="number" label="Optimality Gap" value={config.solver_options?.optimality_gap || ''} onChange={(e) => handleConfigChange('solver_options.optimality_gap', parseFloat(e.target.value))} inputProps={{ min: 0, max: 1, step: 0.001 }} error={!!validationErrors['solver_options.optimality_gap']} helperText={validationErrors['solver_options.optimality_gap'] || "e.g., 0.01 for 1%"} /></Grid>
-                  <Grid item xs={12} sm={4}><TextField fullWidth size="small" type="number" label="Time Limit (sec)" value={config.solver_options?.time_limit || ''} onChange={(e) => handleConfigChange('solver_options.time_limit', parseInt(e.target.value))} inputProps={{ min: 60 }} error={!!validationErrors['solver_options.time_limit']} helperText={validationErrors['solver_options.time_limit']}/></Grid>
+                  <Grid item xs={12} sm={4}><TextField fullWidth size="small" type="number" label="Optimality Gap" value={config.solver_options?.optimality_gap ?? ''} onChange={(e) => handleConfigChange('solver_options.optimality_gap', parseFloat(e.target.value))} inputProps={{ min: 0, max: 1, step: 0.001 }} error={!!validationErrors['solver_options.optimality_gap']} helperText={validationErrors['solver_options.optimality_gap'] || "e.g., 0.01 for 1%"} /></Grid>
+                  <Grid item xs={12} sm={4}><TextField fullWidth size="small" type="number" label="Time Limit (sec)" value={config.solver_options?.time_limit ?? ''} onChange={(e) => handleConfigChange('solver_options.time_limit', parseInt(e.target.value))} inputProps={{ min: 60 }} error={!!validationErrors['solver_options.time_limit']} helperText={validationErrors['solver_options.time_limit']}/></Grid>
                 </Grid>
               </AccordionDetails>
             </Accordion>
@@ -367,10 +365,8 @@ export const PyPSAModeling: React.FC = () => {
             <Chip size="small" label={`Base Year: ${config.base_year}`} sx={{m:0.5}}/>
             <Chip size="small" label={`Mode: ${config.investment_mode}`} sx={{m:0.5}}/>
             <Chip size="small" label={`Solver: ${config.solver_options?.solver || 'default'}`} sx={{m:0.5}}/>
-            {/* Add more chips for key config items */}
             <Divider sx={{my:2}}/>
             <Typography variant="subtitle2" gutterBottom>Recent Optimizations:</Typography>
-            {/* This would list recent jobs from Redux state or an API call */}
             <Typography variant="body2" color="text.secondary">No recent optimization history available in this view yet.</Typography>
           </Paper>
         </Grid>

@@ -1,34 +1,27 @@
 import React, { useEffect, useRef, useState, Suspense, lazy } from 'react';
-import { Box, Typography, IconButton, Menu, MenuItem, CircularProgress, Alert, useTheme, Paper, Tooltip } from '@mui/material'; // Added Paper, Tooltip
+import { Box, Typography, IconButton, Menu, MenuItem, CircularProgress, Alert, useTheme, Paper, Tooltip, Button } from '@mui/material'; // Added Button
 import { MoreVert, Download, Fullscreen, Refresh, BrokenImage } from '@mui/icons-material';
 
 // Lazy load Plotly to reduce initial bundle size
 const Plot = lazy(() => import('react-plotly.js'));
 
-// Forward declare Plotly if @types/plotly.js is not strictly enforced or causing issues
-// This helps TypeScript know Plotly exists globally when react-plotly.js loads it.
-declare global {
-  var Plotly: any;
-}
-
-// Define Plotly types if not globally available or to be more specific
-// You might need to install @types/plotly.js if you haven't already.
-// The `plotly.js` package itself doesn't export all types needed for `react-plotly.js` props easily.
-// Using `any` for `Plotly` related types internally if `@types/plotly.js` causes too many issues
-// with `react-plotly.js` specific event types.
+// If @types/plotly.js is installed, TypeScript should use those types.
+// The `declare global { var Plotly: any; }` was removed as it conflicts if @types/plotly.js is present.
+// We will rely on `react-plotly.js` making Plotly available and use `any` casts for Plotly specific objects
+// only if precise typing from @types/plotly.js proves too difficult with react-plotly.js.
 
 interface PlotlyChartProps {
-  data: any[]; // Using any[] for data for flexibility, Plotly.Data[] from @types/plotly.js is stricter
-  layout?: Partial<any>; // Using Partial<any> for layout, Plotly.Layout is stricter
-  config?: Partial<any>; // Using Partial<any> for config, Plotly.Config is stricter
+  data: any[];
+  layout?: Partial<any>;
+  config?: Partial<any>;
   title?: string;
   height?: number | string;
   loading?: boolean;
   error?: string | null;
   onExport?: (format: 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'html' | 'json' | 'csv') => void;
   onRefresh?: () => void;
-  onRelayout?: (eventData: any) => void; // react-plotly.js event type might be PlotRelayoutEvent
-  onClick?: (eventData: any) => void;   // react-plotly.js event type might be PlotMouseEvent
+  onRelayout?: (eventData: any) => void;
+  onClick?: (eventData: any) => void;
   revision?: number;
   useResizeHandler?: boolean;
   className?: string;
@@ -37,8 +30,8 @@ interface PlotlyChartProps {
 
 export const PlotlyChart: React.FC<PlotlyChartProps> = ({
   data,
-  layout = {}, // Default to empty object
-  config = {}, // Default to empty object
+  layout = {},
+  config = {},
   title,
   height = 400,
   loading = false,
@@ -54,9 +47,9 @@ export const PlotlyChart: React.FC<PlotlyChartProps> = ({
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const plotRef = useRef<any>(null); // Ref to access Plotly instance if needed
+  const plotRef = useRef<any>(null);
 
-  const defaultLayout = { // Removed Partial<Plotly.Layout> for broader compatibility if types are an issue
+  const defaultLayout: Partial<any> = { // Using Partial<any> for Plotly.Layout
     autosize: true,
     margin: { l: 60, r: 30, t: title ? 60 : 30, b: 50 },
     paper_bgcolor: theme.palette.background.paper,
@@ -78,27 +71,26 @@ export const PlotlyChart: React.FC<PlotlyChartProps> = ({
       zerolinecolor: theme.palette.divider,
       tickfont: { color: theme.palette.text.secondary },
       title: layout.yaxis?.title ? { text: layout.yaxis.title, font: { color: theme.palette.text.secondary } } : undefined,
-      autorange: layout.yaxis?.autorange // Preserve user-defined autorange
+      autorange: layout.yaxis?.autorange
     },
     legend: {
         font: {color: theme.palette.text.secondary},
         bgcolor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)',
     },
-    ...(layout || {}), // User layout overrides defaults, ensure layout is not undefined
-    title: layout.title || (title ? {text: title, font: {color: theme.palette.text.primary}} : undefined), // Merge title correctly
+    ...(layout || {}),
+    title: layout.title || (title ? {text: title, font: {color: theme.palette.text.primary}} : undefined),
   };
 
   const defaultConfig: Partial<any> = { // Using Partial<any> for Plotly.Config
     displaylogo: false,
-    responsive: true, // Handled by Plotly's internal responsive logic
+    responsive: true,
     modeBarButtonsToRemove: ['select2d', 'lasso2d', 'sendDataToCloud'],
     toImageButtonOptions: {
       format: 'png',
       filename: title ? title.replace(/\s+/g, '_').toLowerCase() : 'chart_export',
-      // height and width are taken from the plot by default
-      scale: 2 // Higher scale for better resolution
+      scale: 2
     },
-    ...config // User config overrides defaults
+    ...(config || {}),
   };
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
@@ -107,22 +99,41 @@ export const PlotlyChart: React.FC<PlotlyChartProps> = ({
   const handleExport = (format: 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'html' | 'json' | 'csv') => {
     if (onExport) {
       onExport(format);
-    } else if (plotRef.current && plotRef.current.el) {
-        // Default Plotly export if no custom handler
-        if (['png', 'jpeg', 'webp', 'svg', 'pdf'].includes(format)) {
+    } else if (plotRef.current && plotRef.current.el && (window as any).Plotly) { // Check for global Plotly
+        const Plotly = (window as any).Plotly;
+        if (['png', 'jpeg', 'webp', 'svg'].includes(format)) { // PDF export via downloadImage can be problematic/differ
             Plotly.downloadImage(plotRef.current.el, {
-                format: format as 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf',
-                filename: defaultConfig.toImageButtonOptions?.filename || 'chart'
+                format: format as 'png' | 'jpeg' | 'webp' | 'svg', // Corrected type
+                filename: defaultConfig.toImageButtonOptions?.filename || 'chart',
+                scale: defaultConfig.toImageButtonOptions?.scale || 1
             });
+        } else if (format === 'pdf') {
+            // PDF export often requires more setup or a different Plotly method if available
+            // For now, let's try with downloadImage but it might not be ideal or fully supported by all backends
+             Plotly.downloadImage(plotRef.current.el, {
+                format: 'svg', // Often PDF is generated from SVG
+                filename: defaultConfig.toImageButtonOptions?.filename || 'chart',
+             }).then((svgDataUrl: string) => {
+                // This part would need a client-side SVG to PDF library or a server-side conversion
+                // For simplicity, we'll just log a warning for now if direct PDF via downloadImage isn't standard
+                console.warn("PDF export initiated (from SVG). For robust PDF, server-side conversion or a library like jsPDF might be needed.");
+                // Fallback: could offer SVG instead, or just not offer PDF if too complex here.
+                // For now, this is a placeholder for a more robust PDF solution.
+             }).catch((err: any) => console.error("Error during PDF/SVG export step: ", err));
+
         } else if (format === 'csv' && data.length > 0) {
-            // Basic CSV export for the first trace - can be enhanced
             const firstTrace = data[0];
             let csvContent = "data:text/csv;charset=utf-8,";
-            if (firstTrace.x && firstTrace.y) {
-                csvContent += `${firstTrace.name || 'x'},${firstTrace.name || 'y'}\n`; // Headers
+            if (firstTrace.x && firstTrace.y && Array.isArray(firstTrace.x) && Array.isArray(firstTrace.y)) {
+                const headerX = firstTrace.name_x || (firstTrace.xaxis ? `x (${firstTrace.xaxis})` : 'x');
+                const headerY = firstTrace.name || (firstTrace.yaxis ? `y (${firstTrace.yaxis})` : 'y');
+                csvContent += `${headerX},${headerY}\n`;
                 (firstTrace.x as any[]).forEach((val, index) => {
-                    csvContent += `${val},${(firstTrace.y as any[])[index]}\n`;
+                    csvContent += `${String(val).replace(/"/g, '""')},${String((firstTrace.y as any[])[index]).replace(/"/g, '""')}\n`;
                 });
+            } else {
+                console.warn("CSV export: First trace does not have expected x/y array structure.");
+                csvContent += "Error_Could_not_parse_data_for_CSV\n";
             }
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
@@ -131,8 +142,22 @@ export const PlotlyChart: React.FC<PlotlyChartProps> = ({
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        } else if (format === 'json') {
+            const jsonData = {
+                data: data,
+                layout: plotRef.current.el?.layout || defaultLayout // try to get current layout
+            };
+            const jsonString = JSON.stringify(jsonData, null, 2);
+            const blob = new Blob([jsonString], {type: "application/json;charset=utf-8"});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `${defaultConfig.toImageButtonOptions?.filename || 'chart'}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
-         // JSON and HTML export might need more specific handling or rely on Plotly's capabilities if available
     }
     handleMenuClose();
   };
@@ -178,15 +203,13 @@ export const PlotlyChart: React.FC<PlotlyChartProps> = ({
                 <IconButton size="small" onClick={onRefresh}><Refresh /></IconButton>
               </Tooltip>
             )}
-            {/* Fullscreen button can be added if a modal or fullscreen API is used */}
-            {/* <Tooltip title="Fullscreen"><IconButton size="small"><Fullscreen /></IconButton></Tooltip> */}
-            {(onExport || plotRef.current) && ( // Enable menu if onExport provided OR if ref is available for default export
+            {(onExport || (plotRef.current && (window as any).Plotly) ) && (
               <>
                 <Tooltip title="More Options">
                     <IconButton size="small" onClick={handleMenuOpen}><MoreVert /></IconButton>
                 </Tooltip>
                 <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-                  {['png', 'svg', 'csv', 'json'].map(format => ( // Common export formats
+                  {['png', 'svg', 'csv', 'json'].map(format => (
                      <MenuItem key={format} onClick={() => handleExport(format as any)}>
                         <Download sx={{ mr: 1 }} fontSize="small"/> Export {format.toUpperCase()}
                      </MenuItem>
@@ -197,18 +220,18 @@ export const PlotlyChart: React.FC<PlotlyChartProps> = ({
           </Box>
         </Box>
       )}
-      <Box sx={{ flexGrow: 1, width: '100%', height: '100%', minHeight: 0 /* Important for flex item to shrink */ }}>
+      <Box sx={{ flexGrow: 1, width: '100%', height: '100%', minHeight: 0 }}>
         <Suspense fallback={<Box sx={{display:'flex', justifyContent:'center', alignItems:'center', height:'100%'}}><CircularProgress/></Box>}>
             <Plot
                 ref={plotRef}
-                data={data as Plotly.Data[]} // Cast to Plotly.Data[]
+                data={data as any[]}
                 layout={defaultLayout}
                 config={defaultConfig}
-                style={{ width: '100%', height: '100%' }} // Ensure Plotly fills the container
+                style={{ width: '100%', height: '100%' }}
                 onRelayout={onRelayout}
                 onClick={onClick}
                 revision={revision}
-                useResizeHandler={useResizeHandler} // Let Plotly handle resize
+                useResizeHandler={useResizeHandler}
             />
         </Suspense>
       </Box>
@@ -220,16 +243,14 @@ export const PlotlyChart: React.FC<PlotlyChartProps> = ({
 // Specialized chart components (examples)
 
 interface SpecificChartProps extends Omit<PlotlyChartProps, 'data'> {
-    // Common props for specific charts, can be expanded
     xData?: any[];
-    yData?: any[] | any[][]; // Allow array of arrays for multiple y-axes or traces
+    yData?: any[] | any[][];
     names?: string | string[];
     colors?: string | string[];
-    // Add other common specific props like xAxisTitle, yAxisTitle etc.
 }
 
 export const LineChart: React.FC<SpecificChartProps> = ({ xData = [], yData = [], names, colors, layout, ...props }) => {
-  const traces: any[] = []; // Using any[] for traces
+  const traces: any[] = [];
   const yDataArray = Array.isArray(yData?.[0]) ? yData as any[][] : [yData as any[]];
   const namesArray = Array.isArray(names) ? names : (names ? [names] : []);
   const colorsArray = Array.isArray(colors) ? colors : (colors ? [colors] : []);
@@ -241,12 +262,11 @@ export const LineChart: React.FC<SpecificChartProps> = ({ xData = [], yData = []
       type: 'scatter',
       mode: 'lines+markers',
       name: namesArray[index] || `Series ${index + 1}`,
-      line: { color: colorsArray[index] || undefined }, // Plotly handles undefined color
+      line: { color: colorsArray[index] || undefined },
       marker: { size: 6 }
     });
   });
 
-  // Ensure layout.yaxis exists before trying to set autorange
   const finalLayout = {
     ...(layout || {}),
     yaxis: { ...(layout?.yaxis || {}), autorange: true }
@@ -280,28 +300,27 @@ export const HeatmapChart: React.FC<Omit<PlotlyChartProps, 'data'> & {
   zData: number[][];
   xLabels?: string[];
   yLabels?: string[];
-  colorscale?: any; // Plotly.ColorScale is complex, using `any` for now
+  colorscale?: any;
 }> = ({ zData, xLabels, yLabels, colorscale = 'Viridis', layout, ...props }) => {
   const data = [{
     z: zData,
     x: xLabels,
     y: yLabels,
-    type: 'heatmap' as any, // Using `any` for Plotly.PlotType
+    type: 'heatmap' as any,
     colorscale: colorscale,
     showscale: true,
   }];
-  const finalLayout = { yaxis: { autorange: 'reversed' }, ...layout }; // Common for heatmaps
+  const finalLayout = { ...(layout || {}), yaxis: { ...(layout?.yaxis || {}), autorange: 'reversed' } };
 
   return <PlotlyChart data={data} layout={finalLayout} {...props} />;
 };
 
-// Add ScatterChart, MultiLineChart etc. as needed, following similar patterns.
 export const ScatterChart: React.FC<SpecificChartProps & { size?: number | number[], symbol?: string | string[] }> = ({ xData = [], yData = [], names, colors, size, symbol, layout, ...props }) => {
-  const traces: any[] = []; // Using any[] for traces
-  const yDataArray = Array.isArray(yData[0]) ? yData as any[][] : [yData as any[]];
-  const namesArray = Array.isArray(names) ? names : [names];
-  const colorsArray = Array.isArray(colors) ? colors : [colors];
-  const sizesArray = Array.isArray(size) ? size : (size ? [size] : []); // Ensure array or default to empty for map
+  const traces: any[] = [];
+  const yDataArray = Array.isArray(yData?.[0]) ? yData as any[][] : [yData as any[]];
+  const namesArray = Array.isArray(names) ? names : (names ? [names] : []);
+  const colorsArray = Array.isArray(colors) ? colors : (colors ? [colors] : []);
+  const sizesArray = Array.isArray(size) ? size : (size ? [size] : []);
   const symbolsArray = Array.isArray(symbol) ? symbol : (symbol ? [symbol] : []);
 
 
@@ -314,8 +333,8 @@ export const ScatterChart: React.FC<SpecificChartProps & { size?: number | numbe
       name: namesArray[index] || `Series ${index + 1}`,
       marker: {
         color: colorsArray[index] || undefined,
-        size: sizesArray[index] || 8, // Default size if not provided for this trace
-        symbol: symbolsArray[index] || undefined, // Default symbol
+        size: sizesArray[index] || 8,
+        symbol: symbolsArray[index] || undefined,
       }
     });
   });

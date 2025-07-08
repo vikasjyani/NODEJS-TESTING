@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Box, TextField, Button, Grid, Typography, Paper, Autocomplete, Chip, Collapse, IconButton, Tooltip } from '@mui/material';
-import { DateRangePicker, LocalizationProvider, DateRange } from '@mui/x-date-pickers-pro';
-import { AdapterDateFns } from '@mui/x-date-pickers-pro/AdapterDateFns';
+import { Box, TextField, Button, Grid, Typography, Paper, Autocomplete, Chip, Collapse, IconButton, Tooltip, Menu, MenuItem, Checkbox, ListItemText } from '@mui/material';
+// import { DateRangePicker, LocalizationProvider, DateRange } from '@mui/x-date-pickers-pro'; // Commented out
+// import { AdapterDateFns } from '@mui/x-date-pickers-pro/AdapterDateFns'; // Commented out
 import { FilterList, FilterListOff, RotateLeft } from '@mui/icons-material';
 
 export interface ChartFilterValues {
-  dateRange?: DateRange<Date>;
-  selectedCategories?: string[]; // For categorical filtering
-  valueRange?: { min?: number; max?: number }; // For numerical filtering
-  // Add more specific filter types as needed
-  [key: string]: any; // Allow for custom filters
+  // dateRange?: DateRange<Date>; // Commented out
+  dateRange?: [Date | null, Date | null]; // Using simple tuple for now
+  selectedCategories?: string[];
+  valueRange?: { min?: number; max?: number };
+  [key: string]: any;
 }
 
 interface FilterOption {
   id: string;
   label: string;
-  type: 'date_range' | 'category_select' | 'value_range' | 'custom_text';
-  options?: string[]; // For category_select
-  min?: number; // For value_range
-  max?: number; // For value_range
+  type: 'date_range_placeholder' | 'category_select' | 'value_range' | 'custom_text'; // Changed 'date_range'
+  options?: string[];
+  min?: number;
+  max?: number;
 }
 
 interface ChartFiltersProps {
@@ -44,7 +44,6 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({
   const [isPanelOpen, setIsPanelOpen] = useState<boolean>(defaultOpen);
 
   useEffect(() => {
-    // Sync internal state if currentFilters prop changes from outside
     setInternalFilters(currentFilters);
   }, [currentFilters]);
 
@@ -59,16 +58,17 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({
   const handleReset = () => {
     const resetValues: ChartFilterValues = {};
     availableFilters.forEach(f => {
-        if (f.type === 'date_range') resetValues[f.id] = [null, null];
+        // if (f.type === 'date_range') resetValues[f.id] = [null, null] as DateRange<Date>; // Commented out
+        if (f.type === 'date_range_placeholder') resetValues[f.id] = [null, null] as [Date | null, Date | null];
         else if (f.type === 'category_select') resetValues[f.id] = [];
         else if (f.type === 'value_range') resetValues[f.id] = { min: undefined, max: undefined };
         else resetValues[f.id] = '';
     });
     setInternalFilters(resetValues);
     if (onResetFilters) {
-        onResetFilters(); // Call parent reset if provided
+        onResetFilters();
     } else {
-        onFilterChange(resetValues); // Or just apply empty filters
+        onFilterChange(resetValues);
     }
   };
 
@@ -76,21 +76,50 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({
 
   const renderFilterField = (filter: FilterOption) => {
     switch (filter.type) {
-      case 'date_range':
+      case 'date_range_placeholder': // Was 'date_range'
+        // Placeholder for DateRangePicker
         return (
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <DateRangePicker
-              value={internalFilters[filter.id] as DateRange<Date> || [null, null]}
-              onChange={(newValue) => handleInputChange(filter.id, newValue)}
-              renderInput={(startProps, endProps) => (
-                <>
-                  <TextField {...startProps} label={`${filter.label} Start`} size="small" fullWidth sx={{mr:1}}/>
-                  <TextField {...endProps} label={`${filter.label} End`} size="small" fullWidth />
-                </>
-              )}
-            />
-          </LocalizationProvider>
+            <Box sx={{display: 'flex', gap: 1}}>
+                 <TextField
+                    label={`${filter.label} Start (Placeholder)`}
+                    type="date"
+                    size="small"
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                    value={internalFilters[filter.id]?.[0] ? (internalFilters[filter.id][0] as Date).toISOString().split('T')[0] : ''}
+                    onChange={(e) => {
+                        const currentDateRange = (internalFilters[filter.id] as [Date | null, Date | null]) || [null, null];
+                        handleInputChange(filter.id, [e.target.value ? new Date(e.target.value) : null, currentDateRange[1]]);
+                    }}
+                />
+                 <TextField
+                    label={`${filter.label} End (Placeholder)`}
+                    type="date"
+                    size="small"
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                    value={internalFilters[filter.id]?.[1] ? (internalFilters[filter.id][1] as Date).toISOString().split('T')[0] : ''}
+                    onChange={(e) => {
+                        const currentDateRange = (internalFilters[filter.id] as [Date | null, Date | null]) || [null, null];
+                        handleInputChange(filter.id, [currentDateRange[0], e.target.value ? new Date(e.target.value) : null]);
+                    }}
+                />
+            </Box>
         );
+        // return ( // Original DateRangePicker code commented out
+        //   <LocalizationProvider dateAdapter={AdapterDateFns}>
+        //     <DateRangePicker
+        //       value={internalFilters[filter.id] as DateRange<Date> || [null, null]}
+        //       onChange={(newValue: DateRange<Date>) => handleInputChange(filter.id, newValue)}
+        //       renderInput={(startProps: any, endProps: any) => (
+        //         <>
+        //           <TextField {...startProps} label={`${filter.label} Start`} size="small" fullWidth sx={{mr:1}}/>
+        //           <TextField {...endProps} label={`${filter.label} End`} size="small" fullWidth />
+        //         </>
+        //       )}
+        //     />
+        //   </LocalizationProvider>
+        // );
       case 'category_select':
         return (
           <Autocomplete
@@ -98,9 +127,9 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({
             size="small"
             options={filter.options || []}
             value={internalFilters[filter.id] as string[] || []}
-            onChange={(event, newValue) => handleInputChange(filter.id, newValue)}
-            renderTags={(value, getTagProps) =>
-              value.map((option, index) => (
+            onChange={(event, newValue: string[]) => handleInputChange(filter.id, newValue)} // Typed newValue
+            renderTags={(value: readonly string[], getTagProps) => // Typed value
+              value.map((option: string, index: number) => ( // Typed option and index
                 <Chip label={option} {...getTagProps({ index })} size="small"/>
               ))
             }
@@ -148,7 +177,7 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({
   };
 
   if (availableFilters.length === 0) {
-    return null; // Don't render if no filters are defined
+    return null;
   }
 
   return (
@@ -177,7 +206,7 @@ export const ChartFilters: React.FC<ChartFiltersProps> = ({
             {!collapsible && showTitle && <Typography variant="h6" gutterBottom>Filter Options</Typography>}
             <Grid container spacing={2}>
                 {availableFilters.map((filter) => (
-                <Grid item xs={12} sm={6} md={filter.type === 'date_range' ? 12 : (filter.type === 'category_select' ? 6 : 4)} key={filter.id}>
+                <Grid item xs={12} sm={6} md={filter.type === 'date_range_placeholder' ? 12 : (filter.type === 'category_select' ? 6 : 4)} key={filter.id}>
                     {renderFilterField(filter)}
                 </Grid>
                 ))}

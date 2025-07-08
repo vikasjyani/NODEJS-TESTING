@@ -89,11 +89,13 @@ export const ProfilePreview: React.FC<ProfilePreviewProps> = ({ baseYearData, se
       {activeTab === 0 && (
         <Paper variant="outlined" sx={{ p: 2, height: 400 }}>
           <LineChart
-            data={[{ x: chartX, y: chartY, type: 'scatter', mode: 'lines', name: `Load (Year ${currentYearLabel})` }]}
+            xData={chartX}
+            yData={chartY}
+            names={[`Load (Year ${currentYearLabel})`]}
             layout={{
-                title: `Sample Hourly Load Profile - Year ${currentYearLabel} (First Week)`,
-                xaxis: { title: 'Time', type: 'date' },
-                yaxis: { title: 'Load (MW)' },
+                title: {text: `Sample Hourly Load Profile - Year ${currentYearLabel} (First Week)`},
+                xaxis: { title: {text: 'Time'}, type: 'date' },
+                yaxis: { title: {text: 'Load (MW)'} },
                 height: 380,
             }}
           />
@@ -102,11 +104,13 @@ export const ProfilePreview: React.FC<ProfilePreviewProps> = ({ baseYearData, se
       {activeTab === 1 && (
         <Paper variant="outlined" sx={{ p: 2, height: 400 }}>
           <LineChart
-            data={[{ x: Array.from({length: 24}, (_, i) => i), y: dailyAverage, type: 'scatter', mode: 'lines+markers', name: 'Avg. Daily Load' }]}
+            xData={Array.from({length: 24}, (_, i) => i)}
+            yData={dailyAverage}
+            names={['Avg. Daily Load']}
             layout={{
-                title: `Typical Daily Load Shape - Year ${currentYearLabel}`,
-                xaxis: { title: 'Hour of Day', tickmode: 'array', tickvals: Array.from({length:24}, (_,i)=>i) },
-                yaxis: { title: 'Average Load (MW)' },
+                title: {text: `Typical Daily Load Shape - Year ${currentYearLabel}`},
+                xaxis: { title: {text: 'Hour of Day'}, tickmode: 'array', tickvals: Array.from({length:24}, (_,i)=>i) },
+                yaxis: { title: {text: 'Average Load (MW)'} },
                 height: 380,
             }}
           />

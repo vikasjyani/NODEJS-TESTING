@@ -38,11 +38,11 @@ export const useFileUpload = (options: UseFileUploadOptions = {}) => {
     fileRejections.forEach(rejection => {
       newUploadables.push({
         id: generateId(),
-        file: rejection.file,
+        file: rejection.file as File, // Cast to File
         status: 'error',
         error: `${rejection.errors[0].message} (Code: ${rejection.errors[0].code})`,
         previewUrl: rejection.file.type.startsWith('image/') ? URL.createObjectURL(rejection.file) : undefined,
-        validationResult: { // Mock validation result for rejected files
+        validationResult: {
             isValid: false,
             errors: [rejection.errors[0].message],
             fileName: rejection.file.name,
@@ -55,29 +55,27 @@ export const useFileUpload = (options: UseFileUploadOptions = {}) => {
     // Process accepted files
     for (const file of acceptedDropFiles) {
       if (files.length + newUploadables.filter(f=>f.status !== 'error').length >= maxFiles && maxFiles > 0) {
-        // Create a single error entry if maxFiles is exceeded by this batch
         if (!newUploadables.find(f => f.error?.includes("Maximum files exceeded"))) {
             newUploadables.push({
                 id: generateId(),
-                file: new File([], "limit_error.txt"), // Dummy
+                file: new File([], "limit_error.txt"),
                 status: 'error',
                 error: `Maximum ${maxFiles} file(s) allowed.`,
             });
         }
-        break; // Stop processing further accepted files if limit hit
+        break;
       }
 
       const id = generateId();
       const initialUploadable: UploadableFile = {
         id,
-        file,
+        file: file as File, // Cast to File
         status: 'validating',
         previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
       };
       newUploadables.push(initialUploadable);
     }
 
-    // Update state once with all newly processed files (rejected and accepted)
     setFiles(prev => [...prev, ...newUploadables]);
 
     // Perform client-side validation for newly added 'validating' files
