@@ -8,27 +8,26 @@ import {
   Timeline, TrendingUp, CloudUpload, PlayArrow, Visibility, ListAlt, SettingsApplications, BarChart
 } from '@mui/icons-material';
 
-import { RootState, useAppDispatch } from '../../store';
+import { RootState } from '../store'; // Corrected
+import { useAppDispatch } from '../store/hooks'; // Corrected
 import {
   useGenerateProfileMutation,
   useGetSavedProfilesQuery,
-  // useUploadFileMutation // Assuming file uploads for templates might be handled by a dedicated component that uses this
-} from '../../store/api/apiSlice';
-import { useProfileNotifications } from '../../services/websocket'; // Changed from useProfileProgress
-import { MethodSelection, GenerationMethod } from '../../components/loadProfile/MethodSelection'; // Will be created
-import { ConfigurationForm, ProfileConfigData } from '../../components/loadProfile/ConfigurationForm'; // Will be created
-import { TemplateUpload } from '../../components/loadProfile/TemplateUpload'; // Will be created
-import { ProfilePreview } from '../../components/loadProfile/ProfilePreview'; // Will be created
-import { ProfileManager } from '../../components/loadProfile/ProfileManager'; // Will be created
-import { GenerationProgress } from '../../components/loadProfile/GenerationProgress'; // Will be created
-import { addNotification } from '../../store/slices/notificationSlice';
+  // useUploadFileMutation
+} from '../store/api/apiSlice'; // Corrected
+import { useProfileNotifications } from '../services/websocket'; // Corrected
+import { MethodSelection, GenerationMethod } from '../components/loadProfile/MethodSelection'; // Corrected
+import { ConfigurationForm, ProfileConfigData } from '../components/loadProfile/ConfigurationForm'; // Corrected
+import { TemplateUpload } from '../components/loadProfile/TemplateUpload'; // Corrected
+import { ProfilePreview } from '../components/loadProfile/ProfilePreview'; // Corrected
+import { ProfileManager } from '../components/loadProfile/ProfileManager'; // Corrected
+import { GenerationProgress } from '../components/loadProfile/GenerationProgress'; // Corrected
+import { addNotification } from '../store/slices/notificationSlice'; // Corrected
 
 interface GenerationStep {
   label: string;
   description: string;
   icon: React.ReactElement;
-  // completed: boolean; // Completion logic will be part of component state
-  // active: boolean; // Active state will be part of component state
 }
 
 const WIZARD_STEPS: GenerationStep[] = [
@@ -60,22 +59,16 @@ export const LoadProfileGeneration: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [selectedMethod, setSelectedMethod] = useState<GenerationMethod | null>(null);
   const [generationConfig, setGenerationConfig] = useState<Partial<ProfileConfigData>>({});
-  const [templateFileUploaded, setTemplateFileUploaded] = useState<boolean>(false); // Track template upload status
+  const [templateFileUploaded, setTemplateFileUploaded] = useState<boolean>(false);
 
   const [currentProfileJobId, setCurrentProfileJobId] = useState<string | null>(null);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
 
-  // API hooks
   const [generateProfile, { isLoading: startingGeneration, error: generationStartError }] = useGenerateProfileMutation();
-  const { data: savedProfilesData, refetch: refetchProfiles, isLoading: profilesLoading } = useGetSavedProfilesQuery(undefined, {
-    // pollingInterval: 30000, // Optionally poll for new profiles
-  });
-  // const [uploadTemplate, { isLoading: uploadingTemplate }] = useUploadFileMutation(); // If using RTK for upload
+  const { data: savedProfilesData, refetch: refetchProfiles, isLoading: profilesLoading } = useGetSavedProfilesQuery(undefined, {});
 
-  // WebSocket progress tracking for the current job
   useProfileNotifications(currentProfileJobId);
 
-  // Redux state for all profile generation jobs
   const profileJobs = useSelector((state: RootState) => state.loadProfile.generationJobs);
   const activeJobDetails = currentProfileJobId ? profileJobs[currentProfileJobId] : null;
 
@@ -86,36 +79,30 @@ export const LoadProfileGeneration: React.FC = () => {
   }, [generationStartError, dispatch]);
 
   const isStepCompleted = (stepIndex: number): boolean => {
-    if (stepIndex < activeStep) return true; // Previous steps are considered completed
+    if (stepIndex < activeStep) return true;
     if (stepIndex === 0) return !!selectedMethod;
-    if (stepIndex === 1) return !!selectedMethod && Object.keys(generationConfig).length > 0; // Basic check
+    if (stepIndex === 1) return !!selectedMethod && Object.keys(generationConfig).length > 0;
     if (stepIndex === 2) {
-        // Optional step: considered complete if no specific template is strictly required by selectedMethod,
-        // or if a template has been uploaded.
-        // This logic might need refinement based on specific method requirements.
-        if (selectedMethod?.id === 'custom_template_method' && !templateFileUploaded) return false;
+        if (selectedMethod?.requiresTemplateUpload && !templateFileUploaded) return false;
         return true;
     }
-    return false; // Future steps not yet completed
+    return false;
   };
 
 
   const handleMethodSelection = (method: GenerationMethod) => {
     setSelectedMethod(method);
-    setGenerationConfig({}); // Reset config when method changes
+    setGenerationConfig({});
     setActiveStep(1);
   };
 
   const handleConfigurationComplete = (config: ProfileConfigData) => {
     setGenerationConfig(config);
-    setActiveStep(2); // Move to Data Upload or Review
+    setActiveStep(2);
   };
 
   const handleDataValidated = (fileUploaded: boolean) => {
     setTemplateFileUploaded(fileUploaded);
-    // Potentially auto-advance if no further user action is needed for this step
-    // For now, let user click "Next" or proceed from the step content
-    // setActiveStep(3); // Or conditionally if data upload is mandatory
   };
 
   const handleNext = () => {
@@ -144,9 +131,8 @@ export const LoadProfileGeneration: React.FC = () => {
     }
 
     const finalConfig = {
-      method: selectedMethod.id, // Pass method ID
+      method: selectedMethod.id,
       ...generationConfig,
-      // Potentially add uploaded template path if templateFileUploaded is true and path is stored
     };
 
     try {
@@ -154,19 +140,17 @@ export const LoadProfileGeneration: React.FC = () => {
       if (response.success && response.profileJobId) {
         setCurrentProfileJobId(response.profileJobId);
         dispatch(addNotification({type: 'info', message: `Profile generation job '${response.profileJobId}' started.`}));
-        setActiveStep(WIZARD_STEPS.length); // Move to a "monitoring" view or similar
+        setActiveStep(WIZARD_STEPS.length);
       } else {
         dispatch(addNotification({type: 'error', message: response.message || 'Failed to start profile generation.'}));
       }
     } catch (err) {
-      // Error handled by useEffect for generationStartError
       console.error('Failed to start generation:', err);
     }
   };
 
   const handleCancelGeneration = () => {
     if (activeJobDetails && (activeJobDetails.status === 'running' || activeJobDetails.status === 'queued')) {
-        // TODO: API call to cancel
         dispatch(addNotification({type: 'info', message: `Requesting cancellation for job ${activeJobDetails.id}.`}));
     }
   };
@@ -190,7 +174,6 @@ export const LoadProfileGeneration: React.FC = () => {
                   variant="outlined"
                   startIcon={<Visibility />}
                   onClick={() => setPreviewDialogOpen(true)}
-                  // disabled={!selectedMethod} // Enable if there's something to preview
                 >
                   Preview Base Data
                 </Button>
@@ -205,7 +188,6 @@ export const LoadProfileGeneration: React.FC = () => {
           </Paper>
         </Grid>
 
-        {/* Active Generation Progress Monitor */}
         {activeJobDetails && (activeJobDetails.status === 'running' || activeJobDetails.status === 'queued') && (
           <Grid item xs={12}>
             <GenerationProgress
@@ -223,7 +205,7 @@ export const LoadProfileGeneration: React.FC = () => {
         )}
 
 
-        <Grid item xs={12} md={activeStep < WIZARD_STEPS.length ? 8 : 12}> {/* Full width if monitoring */}
+        <Grid item xs={12} md={activeStep < WIZARD_STEPS.length ? 8 : 12}>
           <Paper sx={{ p: {xs:2, sm:3}, borderRadius: 2 }}>
             <Typography variant="h6" gutterBottom sx={{mb:2}}>
               Generation Wizard {activeStep < WIZARD_STEPS.length ? ` - Step ${activeStep + 1} of ${WIZARD_STEPS.length}` : '- Monitoring'}
@@ -254,16 +236,15 @@ export const LoadProfileGeneration: React.FC = () => {
                       {index === 1 && selectedMethod && (
                         <ConfigurationForm
                           method={selectedMethod}
-                          onConfigChange={handleConfigurationComplete} // Or a more granular onConfigChange
+                          onConfigChange={handleConfigurationComplete}
                           initialConfig={generationConfig}
                           isLoading={startingGeneration}
                         />
                       )}
                       {index === 2 && selectedMethod && (
                         <TemplateUpload
-                          method={selectedMethod} // Pass method to tailor upload needs
-                          onDataUploaded={handleDataValidated} // Callback with success/failure or file info
-                          // uploadFunction={uploadTemplate} // Pass RTK Query mutation if used
+                          method={selectedMethod}
+                          onDataUploaded={handleDataValidated}
                         />
                       )}
                       {index === 3 && selectedMethod && (
@@ -310,7 +291,6 @@ export const LoadProfileGeneration: React.FC = () => {
                  <Box sx={{textAlign: 'center', p:3}}>
                     <Typography variant="h5">Profile Generation In Progress</Typography>
                     <Typography>Monitoring job: {activeJobDetails?.id || currentProfileJobId}</Typography>
-                    {/* ProgressMonitor is shown above the wizard when active */}
                     <Button onClick={() => { setActiveStep(0); setCurrentProfileJobId(null); }} sx={{mt:2}}>
                         Start New Generation
                     </Button>
@@ -319,15 +299,13 @@ export const LoadProfileGeneration: React.FC = () => {
           </Paper>
         </Grid>
 
-        {/* Right Panel - Profile Manager (only show if not in the middle of wizard) */}
         { (activeStep >= WIZARD_STEPS.length || !selectedMethod) && (
             <Grid item xs={12} md={4}>
                 <ProfileManager
-                savedProfiles={savedProfilesData?.profiles || []} // Assuming API returns { profiles: [] }
+                savedProfiles={savedProfilesData?.profiles || []}
                 onRefresh={refetchProfiles}
                 isLoading={profilesLoading}
                 activeGenerationJobId={currentProfileJobId}
-                // onSelectProfile={(profileId) => { /* navigate to analysis page or show details */ }}
                 />
             </Grid>
         )}
@@ -336,10 +314,7 @@ export const LoadProfileGeneration: React.FC = () => {
       <Dialog open={previewDialogOpen} onClose={() => setPreviewDialogOpen(false)} maxWidth="lg" fullWidth>
         <DialogTitle>Base Data Preview</DialogTitle>
         <DialogContent>
-          <ProfilePreview
-            // Pass data to preview, e.g., from a selected base year or default template
-            // baseYearData={...}
-          />
+          <ProfilePreview />
         </DialogContent>
       </Dialog>
     </Container>

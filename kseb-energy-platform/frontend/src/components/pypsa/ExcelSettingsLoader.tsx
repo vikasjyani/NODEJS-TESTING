@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Box, Button, Typography, Alert, CircularProgress, Tooltip } from '@mui/material';
+import { Box, Button, Typography, Alert, CircularProgress, Tooltip, Paper, IconButton } from '@mui/material'; // Added Paper, IconButton
 import { FileUpload as FileUploadIcon, SettingsApplications, HelpOutline } from '@mui/icons-material';
 import { useDropzone, FileRejection, Accept } from 'react-dropzone';
 // import * as XLSX from 'xlsx'; // Consider adding xlsx library if parsing is done client-side

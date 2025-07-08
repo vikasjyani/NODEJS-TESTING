@@ -110,9 +110,9 @@ export const CorrelationAnalysis: React.FC<CorrelationAnalysisProps> = ({
                 marker: { color: barChartColors }
               }]}
               layout={{
-                title: `Variable Correlation with Demand`,
-                yaxis: { title: 'Correlation Coefficient', range: [-1, 1] },
-                xaxis: { title: 'Variable', tickangle: -45 },
+                title: {text: `Variable Correlation with Demand`},
+                yaxis: { title: {text: 'Correlation Coefficient'}, range: [-1, 1] },
+                xaxis: { title: {text: 'Variable'}, tickangle: -45 },
                 height: 430,
                 margin: {b: 100}
               }}

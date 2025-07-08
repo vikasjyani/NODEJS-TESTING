@@ -1,5 +1,5 @@
 import React from 'react';
-import { Snackbar, Alert, AlertColor, IconButton } from '@mui/material';
+import { Snackbar, Alert, AlertColor, IconButton, Typography } from '@mui/material'; // Added Typography
 import CloseIcon from '@mui/icons-material/Close';
 // import { useSelector, useDispatch } from 'react-redux'; // If using Redux for notifications
 // import { RootState, AppDispatch } from '../../store'; // Path to your RootState and AppDispatch types

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Grid, Card, CardActionArea, CardContent, CardHeader, Avatar } from '@mui/material';
+import { Box, Typography, Grid, Card, CardActionArea, CardContent, CardHeader, Avatar, Chip } from '@mui/material'; // Added Chip
 import { Timeline, TrendingUp, BuildCircle, Functions } from '@mui/icons-material'; // Example icons
 
 export interface GenerationMethod {

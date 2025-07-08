@@ -110,7 +110,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
                 name: 'Demand (GWh)',
                 marker: { color: 'primary.main' }
               }]}
-              layout={{ title: `Annual Demand Trend - ${sector}` , xaxis: {title: 'Year'}, yaxis: {title: 'Demand (GWh)'}}}
+              layout={{ title: {text: `Annual Demand Trend - ${sector}`} , xaxis: {title: {text: 'Year'}}, yaxis: {title: {text: 'Demand (GWh)'}}}}
               loading={isLoading}
             />
           </Paper>
@@ -122,7 +122,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
               <Paper sx={{ p: 2, height: populationValues.length > 0 ? 190: 400, mb: populationValues.length > 0 ? 2 : 0 }}>
                 <BarChart
                   data={[{ x: years, y: gdpValues, type: 'bar', name: 'GDP Indicator', marker: {color: 'secondary.main'} }]}
-                  layout={{ title: 'GDP Trend', height: populationValues.length > 0 ? 170: 380, yaxis: {title: 'GDP (Indicator)'} }}
+                  layout={{ title: {text: 'GDP Trend'}, height: populationValues.length > 0 ? 170: 380, yaxis: {title: {text: 'GDP (Indicator)'}} }}
                   loading={isLoading}
                 />
               </Paper>
@@ -131,7 +131,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
               <Paper sx={{ p: 2, height: gdpValues.length > 0 ? 190: 400 }}>
                 <BarChart
                   data={[{ x: years, y: populationValues, type: 'bar', name: 'Population Indicator', marker: {color: 'success.main'} }]}
-                  layout={{ title: 'Population Trend', height: gdpValues.length > 0 ? 170: 380, yaxis: {title: 'Population (Indicator)'} }}
+                  layout={{ title: {text: 'Population Trend'}, height: gdpValues.length > 0 ? 170: 380, yaxis: {title: {text: 'Population (Indicator)'}} }}
                   loading={isLoading}
                 />
               </Paper>

@@ -75,7 +75,7 @@ export const useChartData = <TFilters extends Record<string, any>>(
         name: s?.name,
         type: 'bar',
       }));
-      setChartData({ traces, layout: { title: `Chart for ${JSON.stringify(filters)}` }, isLoading: false, error: null });
+      setChartData({ traces, layout: { title: { text: `Chart for ${JSON.stringify(filters)}` } }, isLoading: false, error: null });
     }, 1000);
   }, [filters]);
 

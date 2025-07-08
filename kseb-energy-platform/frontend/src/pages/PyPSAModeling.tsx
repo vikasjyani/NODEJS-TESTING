@@ -5,52 +5,52 @@ import {
   Accordion, AccordionSummary, AccordionDetails, TextField,
   FormControl, FormLabel, RadioGroup, FormControlLabel, Radio,
   Checkbox, FormGroup, Select, MenuItem, InputLabel, SelectChangeEvent,
-  Alert, Chip, CircularProgress, Tooltip, IconButton
+  Alert, Chip, CircularProgress, Tooltip, IconButton, Divider // Added Divider
 } from '@mui/material';
 import {
   ExpandMore, PlayArrow, StopCircle, CloudUpload, Settings,
   Assessment, Info, Warning, CheckCircle, HelpOutline, FolderOpen
 } from '@mui/icons-material';
 
-import { RootState, useAppDispatch } from '../../store';
+import { RootState } from '../store'; // Corrected
+import { useAppDispatch } from '../store/hooks'; // Corrected
 import {
   useRunOptimizationMutation,
-  // useGetOptimizationStatusQuery, // Can be used for polling if WebSocket is not primary
-  useUploadFileMutation // Assuming a generic file upload for PyPSA input template
-} from '../../store/api/apiSlice';
-import { usePyPSANotifications } from '../../services/websocket'; // Changed from usePyPSAProgress
-import { OptimizationProgress } from '../../components/pypsa/OptimizationProgress'; // Will be created
-import { SystemStatus } from '../../components/pypsa/SystemStatus'; // Will be created
-import { ExcelSettingsLoader } from '../../components/pypsa/ExcelSettingsLoader'; // Will be created
-import { addNotification } from '../../store/slices/notificationSlice';
+  // useGetOptimizationStatusQuery,
+  useUploadFileMutation
+} from '../store/api/apiSlice'; // Corrected
+import { usePyPSANotifications } from '../services/websocket'; // Corrected
+import { OptimizationProgress } from '../components/pypsa/OptimizationProgress'; // Corrected
+import { SystemStatus } from '../components/pypsa/SystemStatus'; // Corrected
+import { ExcelSettingsLoader } from '../components/pypsa/ExcelSettingsLoader'; // Corrected
+import { addNotification } from '../store/slices/notificationSlice'; // Corrected
 
-// Mirrored from backend/src/controllers/pypsaController.js and Python script expectations
+export interface PyPSASolverOptions { // Define explicitly for clarity
+    solver?: 'highs' | 'gurobi' | 'cplex' | 'glpk' | 'cbc' | 'scip' | 'xpress';
+    optimality_gap?: number;
+    time_limit?: number;
+}
+
 export interface PyPSAModelConfiguration {
   scenario_name: string;
-  input_file?: string; // Path to the main PyPSA Excel template or NetCDF file
+  input_file?: string;
   base_year: number;
   investment_mode: 'single_year' | 'multi_year' | 'all_in_one';
-  snapshot_selection?: 'all' | 'critical_days'; // Default to 'all' if not specified
+  snapshot_selection?: 'all' | 'critical_days';
 
-  // Advanced options - align with Python script's config expectations
   generator_clustering?: boolean;
   unit_commitment?: boolean;
   monthly_constraints?: boolean;
   battery_constraints?: 'none' | 'daily' | 'weekly' | 'monthly';
 
-  // Solver options
-  solver_options?: {
-    solver?: 'highs' | 'gurobi' | 'cplex' | 'glpk' | 'cbc' | 'scip'; // Common solvers
-    optimality_gap?: number; // e.g., 0.01 for 1%
-    time_limit?: number; // in seconds
-  };
-  timeout?: number; // Python script execution timeout in ms
+  solver_options?: PyPSASolverOptions; // Use the defined type
+  timeout?: number;
 }
 
-const defaultSolverOptions = {
-    solver: 'highs' as PyPSAModelConfiguration['solver_options']['solver'],
+const defaultSolverOptions: PyPSASolverOptions = { // Use the defined type
+    solver: 'highs',
     optimality_gap: 0.01,
-    time_limit: 3600 // 1 hour
+    time_limit: 3600
 };
 
 export const PyPSAModeling: React.FC = () => {
@@ -65,21 +65,18 @@ export const PyPSAModeling: React.FC = () => {
     monthly_constraints: false,
     battery_constraints: 'none',
     solver_options: { ...defaultSolverOptions },
-    timeout: 1800000, // 30 mins default for script execution
+    timeout: 1800000,
   });
 
   const [currentOptimizationJobId, setCurrentOptimizationJobId] = useState<string | null>(null);
   const [inputFileUploaded, setInputFileUploaded] = useState<File | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  // API hooks
   const [runOptimization, { isLoading: startingOptimization, error: optimizationStartError }] = useRunOptimizationMutation();
   const [uploadFile, {isLoading: uploadingInputFile, error: uploadError}] = useUploadFileMutation();
 
-  // WebSocket progress tracking
   usePyPSANotifications(currentOptimizationJobId);
 
-  // Redux state for all optimization jobs
   const optimizationJobs = useSelector((state: RootState) => state.pypsa.optimizationJobs);
   const activeJobDetails = currentOptimizationJobId ? optimizationJobs[currentOptimizationJobId] : null;
 
@@ -93,9 +90,9 @@ export const PyPSAModeling: React.FC = () => {
   }, [optimizationStartError, uploadError, dispatch]);
 
 
-  const handleConfigChange = (field: keyof PyPSAModelConfiguration | `solver_options.${keyof NonNullable<PyPSAModelConfiguration['solver_options'] >}`, value: any) => {
+  const handleConfigChange = (field: keyof PyPSAModelConfiguration | `solver_options.${keyof PyPSASolverOptions}`, value: any) => {
     if (field.startsWith('solver_options.')) {
-        const subField = field.split('.')[1] as keyof NonNullable<PyPSAModelConfiguration['solver_options']>;
+        const subField = field.split('.')[1] as keyof PyPSASolverOptions;
         setConfig(prev => ({
             ...prev,
             solver_options: {
@@ -106,7 +103,6 @@ export const PyPSAModeling: React.FC = () => {
     } else {
         setConfig(prev => ({ ...prev, [field as keyof PyPSAModelConfiguration]: value }));
     }
-    // Clear validation error for the field being changed
     if (validationErrors[field]) {
       setValidationErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -119,7 +115,6 @@ export const PyPSAModeling: React.FC = () => {
     if (config.solver_options?.optimality_gap && (config.solver_options.optimality_gap < 0 || config.solver_options.optimality_gap > 1)) errors['solver_options.optimality_gap'] = 'Optimality gap must be between 0 and 1.';
     if (config.solver_options?.time_limit && config.solver_options.time_limit < 60) errors['solver_options.time_limit'] = 'Solver time limit must be at least 60 seconds.';
     if (!inputFileUploaded && !config.input_file) errors.input_file = 'PyPSA input template/file must be provided or selected.';
-    // Add more specific validations as required by pypsa_runner.py or PyPSA itself
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   }, [config, inputFileUploaded]);
@@ -129,16 +124,9 @@ export const PyPSAModeling: React.FC = () => {
     const file = event.target.files?.[0];
     if (file) {
         setInputFileUploaded(file);
-        setConfig(prev => ({ ...prev, input_file: file.name })); // Store filename in config
-        setValidationErrors(prev => ({...prev, input_file: ''})); // Clear file error
+        setConfig(prev => ({ ...prev, input_file: file.name }));
+        setValidationErrors(prev => ({...prev, input_file: ''}));
         dispatch(addNotification({type: 'success', message: `File "${file.name}" selected.`}));
-        // Optionally, immediately upload if that's the workflow
-        // For instance, if backend needs the file before starting optimization:
-        // try {
-        //   await uploadFile({ file, fileType: 'pypsa_input_template' }).unwrap();
-        //   dispatch(addNotification({type: 'success', message: `File "${file.name}" uploaded successfully.`}));
-        //   setConfig(prev => ({ ...prev, input_file: `uploads/${file.name}` })); // Backend might return a path
-        // } catch (err) { /* error handled by useEffect */ }
     }
   };
 
@@ -150,23 +138,21 @@ export const PyPSAModeling: React.FC = () => {
 
     let finalConfig = { ...config };
 
-    // If a file was selected locally and needs to be uploaded first
-    if (inputFileUploaded && !config.input_file?.startsWith('uploads/')) { // Assuming 'uploads/' prefix means already uploaded
+    if (inputFileUploaded && !config.input_file?.startsWith('uploads/')) {
         try {
             dispatch(addNotification({type: 'info', message: `Uploading input file: ${inputFileUploaded.name}...`}));
             const uploadResult = await uploadFile({ file: inputFileUploaded, fileType: 'pypsa_input_template' }).unwrap();
             if (uploadResult.success && uploadResult.filePath) {
-                 finalConfig.input_file = uploadResult.filePath; // Use the server-side path
+                 finalConfig.input_file = uploadResult.filePath;
                  dispatch(addNotification({type: 'success', message: `File ${inputFileUploaded.name} uploaded to ${uploadResult.filePath}.`}));
             } else {
                 throw new Error(uploadResult.message || "File upload failed before optimization.");
             }
         } catch (err: any) {
             dispatch(addNotification({type: 'error', message: `Critical: Input file upload failed: ${err.message}`}));
-            return; // Stop if essential file upload fails
+            return;
         }
     }
-
 
     try {
       const response = await runOptimization(finalConfig).unwrap();
@@ -177,22 +163,19 @@ export const PyPSAModeling: React.FC = () => {
          dispatch(addNotification({type: 'error', message: response.message || 'Failed to initiate PyPSA optimization.'}));
       }
     } catch (err) {
-      // Error handled by useEffect for optimizationStartError
       console.error('Failed to start PyPSA optimization:', err);
     }
   };
 
   const handleCancelOptimization = () => {
      if (activeJobDetails && (activeJobDetails.status === 'running' || activeJobDetails.status === 'queued')) {
-        // TODO: API call to cancel
         dispatch(addNotification({type: 'info', message: `Requesting cancellation for job ${activeJobDetails.id}.`}));
     }
   };
 
   const loadExcelSettings = (settings: Partial<PyPSAModelConfiguration>) => {
-    // Merges settings from Excel, preferring Excel values for common fields
     setConfig(prev => ({
-      ...prev, // Keep existing values not in Excel
+      ...prev,
       scenario_name: settings.scenario_name || prev.scenario_name,
       base_year: settings.base_year || prev.base_year,
       investment_mode: settings.investment_mode || prev.investment_mode,
@@ -202,7 +185,7 @@ export const PyPSAModeling: React.FC = () => {
       monthly_constraints: settings.monthly_constraints ?? prev.monthly_constraints,
       battery_constraints: settings.battery_constraints || prev.battery_constraints,
       solver_options: settings.solver_options ? { ...defaultSolverOptions, ...settings.solver_options } : prev.solver_options,
-      input_file: settings.input_file || prev.input_file, // Excel might specify a relative path for the main data
+      input_file: settings.input_file || prev.input_file,
       timeout: settings.timeout || prev.timeout,
     }));
     dispatch(addNotification({type: 'success', message: 'Settings loaded from Excel.'}));
@@ -343,7 +326,7 @@ export const PyPSAModeling: React.FC = () => {
                   <Grid item xs={12} sm={4}>
                     <FormControl fullWidth size="small">
                       <InputLabel>Solver</InputLabel>
-                      <Select value={config.solver_options?.solver || 'highs'} label="Solver" onChange={(e) => handleConfigChange('solver_options.solver', e.target.value)}>
+                      <Select value={config.solver_options?.solver || 'highs'} label="Solver" onChange={(e) => handleConfigChange('solver_options.solver', e.target.value as PyPSASolverOptions['solver'] )}>
                         {['highs', 'cbc', 'glpk', 'gurobi', 'cplex', 'scip', 'xpress'].map(s => <MenuItem key={s} value={s}>{s.toUpperCase()}</MenuItem>)}
                       </Select>
                     </FormControl>

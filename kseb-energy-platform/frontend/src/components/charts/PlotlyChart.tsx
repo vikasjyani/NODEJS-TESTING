@@ -1,36 +1,44 @@
 import React, { useEffect, useRef, useState, Suspense, lazy } from 'react';
-import { Box, Typography, IconButton, Menu, MenuItem, CircularProgress, Alert, useTheme } from '@mui/material';
+import { Box, Typography, IconButton, Menu, MenuItem, CircularProgress, Alert, useTheme, Paper, Tooltip } from '@mui/material'; // Added Paper, Tooltip
 import { MoreVert, Download, Fullscreen, Refresh, BrokenImage } from '@mui/icons-material';
 
 // Lazy load Plotly to reduce initial bundle size
 const Plot = lazy(() => import('react-plotly.js'));
 
+// Forward declare Plotly if @types/plotly.js is not strictly enforced or causing issues
+// This helps TypeScript know Plotly exists globally when react-plotly.js loads it.
+declare global {
+  var Plotly: any;
+}
+
 // Define Plotly types if not globally available or to be more specific
-// You might need to install @types/plotly.js if you haven't already
-// declare var Plotly: any; // Simple declaration if types are problematic
+// You might need to install @types/plotly.js if you haven't already.
+// The `plotly.js` package itself doesn't export all types needed for `react-plotly.js` props easily.
+// Using `any` for `Plotly` related types internally if `@types/plotly.js` causes too many issues
+// with `react-plotly.js` specific event types.
 
 interface PlotlyChartProps {
-  data: Partial<Plotly.PlotData>[]; // Plotly.Data[] is more accurate if @types/plotly.js is used
-  layout?: Partial<Plotly.Layout>;
-  config?: Partial<Plotly.Config>;
+  data: any[]; // Using any[] for data for flexibility, Plotly.Data[] from @types/plotly.js is stricter
+  layout?: Partial<any>; // Using Partial<any> for layout, Plotly.Layout is stricter
+  config?: Partial<any>; // Using Partial<any> for config, Plotly.Config is stricter
   title?: string;
-  height?: number | string; // Allow string for responsive heights like '100%'
+  height?: number | string;
   loading?: boolean;
   error?: string | null;
-  onExport?: (format: 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'html' | 'json' | 'csv') => void; // Expanded export options
+  onExport?: (format: 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'html' | 'json' | 'csv') => void;
   onRefresh?: () => void;
-  onRelayout?: (eventData: Plotly.Relayout eventdata) => void; // For zoom/pan events
-  onClick?: (eventData: Plotly.PlotMouseEvent) => void;
-  revision?: number; // Increment to force re-render of plot
-  useResizeHandler?: boolean; // Plotly's internal resize handler
-  className?: string; // For custom styling
+  onRelayout?: (eventData: any) => void; // react-plotly.js event type might be PlotRelayoutEvent
+  onClick?: (eventData: any) => void;   // react-plotly.js event type might be PlotMouseEvent
+  revision?: number;
+  useResizeHandler?: boolean;
+  className?: string;
   noDataMessage?: string;
 }
 
 export const PlotlyChart: React.FC<PlotlyChartProps> = ({
   data,
-  layout = {},
-  config = {},
+  layout = {}, // Default to empty object
+  config = {}, // Default to empty object
   title,
   height = 400,
   loading = false,
@@ -48,9 +56,9 @@ export const PlotlyChart: React.FC<PlotlyChartProps> = ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const plotRef = useRef<any>(null); // Ref to access Plotly instance if needed
 
-  const defaultLayout: Partial<Plotly.Layout> = {
+  const defaultLayout = { // Removed Partial<Plotly.Layout> for broader compatibility if types are an issue
     autosize: true,
-    margin: { l: 60, r: 30, t: title ? 60 : 30, b: 50 }, // Adjusted margins
+    margin: { l: 60, r: 30, t: title ? 60 : 30, b: 50 },
     paper_bgcolor: theme.palette.background.paper,
     plot_bgcolor: theme.palette.background.default,
     font: {
@@ -61,22 +69,26 @@ export const PlotlyChart: React.FC<PlotlyChartProps> = ({
       gridcolor: theme.palette.divider,
       linecolor: theme.palette.text.secondary,
       zerolinecolor: theme.palette.divider,
-      tickfont: { color: theme.palette.text.secondary }
+      tickfont: { color: theme.palette.text.secondary },
+      title: layout.xaxis?.title ? { text: layout.xaxis.title, font: { color: theme.palette.text.secondary } } : undefined,
     },
     yaxis: {
       gridcolor: theme.palette.divider,
       linecolor: theme.palette.text.secondary,
       zerolinecolor: theme.palette.divider,
-      tickfont: { color: theme.palette.text.secondary }
+      tickfont: { color: theme.palette.text.secondary },
+      title: layout.yaxis?.title ? { text: layout.yaxis.title, font: { color: theme.palette.text.secondary } } : undefined,
+      autorange: layout.yaxis?.autorange // Preserve user-defined autorange
     },
     legend: {
         font: {color: theme.palette.text.secondary},
         bgcolor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)',
     },
-    ...layout // User layout overrides defaults
+    ...(layout || {}), // User layout overrides defaults, ensure layout is not undefined
+    title: layout.title || (title ? {text: title, font: {color: theme.palette.text.primary}} : undefined), // Merge title correctly
   };
 
-  const defaultConfig: Partial<Plotly.Config> = {
+  const defaultConfig: Partial<any> = { // Using Partial<any> for Plotly.Config
     displaylogo: false,
     responsive: true, // Handled by Plotly's internal responsive logic
     modeBarButtonsToRemove: ['select2d', 'lasso2d', 'sendDataToCloud'],
@@ -217,10 +229,10 @@ interface SpecificChartProps extends Omit<PlotlyChartProps, 'data'> {
 }
 
 export const LineChart: React.FC<SpecificChartProps> = ({ xData = [], yData = [], names, colors, layout, ...props }) => {
-  const traces: Partial<Plotly.PlotData>[] = [];
-  const yDataArray = Array.isArray(yData[0]) ? yData as any[][] : [yData as any[]];
-  const namesArray = Array.isArray(names) ? names : [names];
-  const colorsArray = Array.isArray(colors) ? colors : [colors];
+  const traces: any[] = []; // Using any[] for traces
+  const yDataArray = Array.isArray(yData?.[0]) ? yData as any[][] : [yData as any[]];
+  const namesArray = Array.isArray(names) ? names : (names ? [names] : []);
+  const colorsArray = Array.isArray(colors) ? colors : (colors ? [colors] : []);
 
   yDataArray.forEach((yTrace, index) => {
     traces.push({
@@ -229,21 +241,25 @@ export const LineChart: React.FC<SpecificChartProps> = ({ xData = [], yData = []
       type: 'scatter',
       mode: 'lines+markers',
       name: namesArray[index] || `Series ${index + 1}`,
-      line: { color: colorsArray[index] || undefined },
+      line: { color: colorsArray[index] || undefined }, // Plotly handles undefined color
       marker: { size: 6 }
     });
   });
 
-  const finalLayout = { yaxis: { autorange: true }, ...layout }; // Ensure y-axis autoranges
+  // Ensure layout.yaxis exists before trying to set autorange
+  const finalLayout = {
+    ...(layout || {}),
+    yaxis: { ...(layout?.yaxis || {}), autorange: true }
+  };
 
   return <PlotlyChart data={traces} layout={finalLayout} {...props} />;
 };
 
 export const BarChart: React.FC<SpecificChartProps> = ({ xData = [], yData = [], names, colors, layout, ...props }) => {
-  const traces: Partial<Plotly.PlotData>[] = [];
-  const yDataArray = Array.isArray(yData[0]) ? yData as any[][] : [yData as any[]];
-  const namesArray = Array.isArray(names) ? names : [names];
-  const colorsArray = Array.isArray(colors) ? colors : [colors];
+  const traces: any[] = [];
+  const yDataArray = Array.isArray(yData?.[0]) ? yData as any[][] : [yData as any[]];
+  const namesArray = Array.isArray(names) ? names : (names ? [names] : []);
+  const colorsArray = Array.isArray(colors) ? colors : (colors ? [colors] : []);
 
   yDataArray.forEach((yTrace, index) => {
     traces.push({
@@ -254,7 +270,8 @@ export const BarChart: React.FC<SpecificChartProps> = ({ xData = [], yData = [],
       marker: { color: colorsArray[index] || undefined }
     });
   });
-  const finalLayout = { barmode: yDataArray.length > 1 ? 'group' : 'stack', ...layout };
+  const finalLayout = { ...(layout || {}), barmode: yDataArray.length > 1 ? 'group' : ('stack' as any) };
+
 
   return <PlotlyChart data={traces} layout={finalLayout} {...props} />;
 };
@@ -263,13 +280,13 @@ export const HeatmapChart: React.FC<Omit<PlotlyChartProps, 'data'> & {
   zData: number[][];
   xLabels?: string[];
   yLabels?: string[];
-  colorscale?: Plotly.ColorScale; // Use Plotly's ColorScale type
+  colorscale?: any; // Plotly.ColorScale is complex, using `any` for now
 }> = ({ zData, xLabels, yLabels, colorscale = 'Viridis', layout, ...props }) => {
   const data = [{
     z: zData,
     x: xLabels,
     y: yLabels,
-    type: 'heatmap' as Plotly.PlotType,
+    type: 'heatmap' as any, // Using `any` for Plotly.PlotType
     colorscale: colorscale,
     showscale: true,
   }];
@@ -280,12 +297,12 @@ export const HeatmapChart: React.FC<Omit<PlotlyChartProps, 'data'> & {
 
 // Add ScatterChart, MultiLineChart etc. as needed, following similar patterns.
 export const ScatterChart: React.FC<SpecificChartProps & { size?: number | number[], symbol?: string | string[] }> = ({ xData = [], yData = [], names, colors, size, symbol, layout, ...props }) => {
-  const traces: Partial<Plotly.PlotData>[] = [];
+  const traces: any[] = []; // Using any[] for traces
   const yDataArray = Array.isArray(yData[0]) ? yData as any[][] : [yData as any[]];
   const namesArray = Array.isArray(names) ? names : [names];
   const colorsArray = Array.isArray(colors) ? colors : [colors];
-  const sizesArray = Array.isArray(size) ? size : [size];
-  const symbolsArray = Array.isArray(symbol) ? symbol : [symbol];
+  const sizesArray = Array.isArray(size) ? size : (size ? [size] : []); // Ensure array or default to empty for map
+  const symbolsArray = Array.isArray(symbol) ? symbol : (symbol ? [symbol] : []);
 
 
   yDataArray.forEach((yTrace, index) => {
@@ -297,8 +314,8 @@ export const ScatterChart: React.FC<SpecificChartProps & { size?: number | numbe
       name: namesArray[index] || `Series ${index + 1}`,
       marker: {
         color: colorsArray[index] || undefined,
-        size: sizesArray[index] || 8,
-        symbol: symbolsArray[index] || undefined,
+        size: sizesArray[index] || 8, // Default size if not provided for this trace
+        symbol: symbolsArray[index] || undefined, // Default symbol
       }
     });
   });

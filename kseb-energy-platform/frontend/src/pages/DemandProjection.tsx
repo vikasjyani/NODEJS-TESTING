@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux'; // useDispatch removed as it's not directly used here now
+import { useSelector } from 'react-redux';
 import {
   Container, Grid, Paper, Typography, Button, Box,
   Tabs, Tab, LinearProgress, Dialog, DialogTitle,
   DialogContent, Alert, Chip, CircularProgress
 } from '@mui/material';
-import { PlayArrow, StopCircle, Settings, Assessment, BarChart, Timeline, Insights, Storage } from '@mui/icons-material'; // Added more icons
+import { PlayArrow, StopCircle, Settings, Assessment, BarChart, Timeline, Insights, Storage } from '@mui/icons-material';
 
-import { RootState, useAppDispatch } from '../store'; // Assuming useAppDispatch is exported from store/hooks via store/index
+import { RootState } from '../store';
+import { useAppDispatch } from '../store/hooks'; // Corrected import
 import {
   useGetSectorDataQuery,
   useRunForecastMutation,
   useGetCorrelationDataQuery,
-  // useGetForecastStatusQuery, // RTK Query hook for status polling (alternative/supplement to WebSocket)
+  // useGetForecastStatusQuery,
 } from '../store/api/apiSlice';
-import { useForecastNotifications } from '../services/websocket'; // Changed from useForecastProgress
-import { SectorNavigation, SectorQualityData, QualityColor } from '../components/demand/SectorNavigation'; // Will be created
-import { DataVisualization } from '../components/demand/DataVisualization'; // Will be created
-import { CorrelationAnalysis } from '../components/demand/CorrelationAnalysis'; // Will be created
-import { ForecastConfiguration, ForecastConfigData } from '../components/demand/ForecastConfiguration'; // Will be created
-import { ProgressMonitor } from '../components/demand/ProgressMonitor'; // Will be created
-import { addNotification } from '../store/slices/notificationSlice'; // For local notifications
+import { useForecastNotifications } from '../services/websocket';
+import { SectorNavigation, SectorQualityData, QualityColor } from '../components/demand/SectorNavigation';
+import { DataVisualization } from '../components/demand/DataVisualization';
+import { CorrelationAnalysis } from '../components/demand/CorrelationAnalysis';
+import { ForecastConfiguration, ForecastConfigData } from '../components/demand/ForecastConfiguration';
+import { ProgressMonitor } from '../components/demand/ProgressMonitor'; // Corrected/verified path
+import { addNotification } from '../store/slices/notificationSlice';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -39,8 +40,8 @@ const availableSectors = [
     { id: 'residential', label: 'Residential', icon: <BarChart /> },
     { id: 'commercial', label: 'Commercial', icon: <Timeline /> },
     { id: 'industrial', label: 'Industrial', icon: <Insights /> },
-    { id: 'agriculture', label: 'Agriculture', icon: <BarChart /> }, // Replace with relevant icon
-    { id: 'transport', label: 'Transport', icon: <Timeline /> }, // Replace with relevant icon
+    { id: 'agriculture', label: 'Agriculture', icon: <BarChart /> },
+    { id: 'transport', label: 'Transport', icon: <Timeline /> },
 ];
 
 
@@ -50,42 +51,29 @@ export const DemandProjection: React.FC = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
 
-  // Track the ID of the forecast job initiated from this component
   const [currentForecastJobId, setCurrentForecastJobId] = useState<string | null>(null);
 
-  // API hooks for data fetching
   const {
     data: sectorData,
     isLoading: sectorLoading,
     error: sectorError,
     refetch: refetchSectorData,
-  } = useGetSectorDataQuery(selectedSector, {
-      // skip: !selectedSector, // Skip query if no sector selected (though we default one)
-      // refetchOnMountOrArgChange: true, // Refetch if sector changes
-  });
+  } = useGetSectorDataQuery(selectedSector, {});
 
   const {
     data: correlationData,
     isLoading: correlationLoading,
     error: correlationError,
     refetch: refetchCorrelationData,
-  } = useGetCorrelationDataQuery(selectedSector, {
-      // skip: !selectedSector,
-      // refetchOnMountOrArgChange: true,
-  });
+  } = useGetCorrelationDataQuery(selectedSector, {});
 
   const [runForecast, { isLoading: forecastStarting, error: forecastStartError }] = useRunForecastMutation();
 
-  // Redux state for all forecast jobs (managed by WebSocket updates and direct dispatches)
   const forecastJobs = useSelector((state: RootState) => state.demand.forecastJobs);
-
-  // Get the specific job this component is tracking
   const activeJobDetails = currentForecastJobId ? forecastJobs[currentForecastJobId] : null;
 
-  // Subscribe to WebSocket notifications for the active forecast job
   useForecastNotifications(currentForecastJobId);
 
-  // Effect to handle forecast start errors
   useEffect(() => {
     if (forecastStartError) {
       dispatch(addNotification({type: 'error', message: `Failed to start forecast: ${ (forecastStartError as any)?.data?.message || (forecastStartError as any)?.error || 'Unknown error'}`}));
@@ -95,9 +83,7 @@ export const DemandProjection: React.FC = () => {
 
   const handleSectorChange = (sector: string) => {
     setSelectedSector(sector);
-    setCurrentTab(0); // Reset to data view
-    // refetchSectorData(); // RTK Query handles refetch on arg change if configured
-    // refetchCorrelationData();
+    setCurrentTab(0);
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -106,36 +92,26 @@ export const DemandProjection: React.FC = () => {
 
   const handleStartForecast = async (config: ForecastConfigData) => {
     try {
-      // The `runForecast` mutation from RTK Query will make the API call.
-      // The backend will return a forecastId.
-      const response = await runForecast(config).unwrap(); // unwrap() throws on error
+      const response = await runForecast(config).unwrap();
       if (response.success && response.forecastId) {
-        setCurrentForecastJobId(response.forecastId); // Start tracking this job
+        setCurrentForecastJobId(response.forecastId);
         setConfigDialogOpen(false);
         dispatch(addNotification({type: 'info', message: `Forecast job '${response.forecastId}' started.`}));
       } else {
         dispatch(addNotification({type: 'error', message: response.message || 'Failed to start forecast job.'}));
       }
     } catch (err: any) {
-      // Error is already handled by the useEffect for forecastStartError,
-      // but you can log it here or show a more specific error if needed.
       console.error('Failed to start forecast:', err);
-      // dispatch(addNotification({type: 'error', message: `Error initiating forecast: ${err.data?.message || err.error || 'Unknown error'}`}));
     }
   };
 
   const handleCancelForecast = () => {
       if (activeJobDetails && (activeJobDetails.status === 'running' || activeJobDetails.status === 'queued')) {
-          // TODO: Implement API call to cancel forecast
-          // e.g., using a mutation: cancelForecastMutation(activeJobDetails.id);
           console.warn("Cancel forecast functionality to be fully implemented via API call.");
           dispatch(addNotification({type: 'info', message: `Requesting cancellation for forecast ${activeJobDetails.id}.`}));
-          // For now, just clear current tracking
-          // setCurrentForecastJobId(null); // Or wait for WebSocket 'cancelled' event
       }
   };
 
-  // Mock data quality - in real app, this would come from backend/validation
   const getSectorQuality = (sector: string): SectorQualityData => {
     const qualities: { [key: string]: { score: number; issues: string[] } } = {
       residential: { score: 0.9, issues: [] },
@@ -179,8 +155,8 @@ export const DemandProjection: React.FC = () => {
                 <Button
                   variant="outlined"
                   startIcon={<Assessment />}
-                  disabled={!sectorData && !activeJobDetails} // Enable if data or a job exists
-                  onClick={() => setCurrentTab(2)} // Navigate to results/scenarios tab
+                  disabled={!sectorData && !activeJobDetails}
+                  onClick={() => setCurrentTab(2)}
                 >
                   View Results
                 </Button>
@@ -203,7 +179,7 @@ export const DemandProjection: React.FC = () => {
           <Grid item xs={12}>
             <ProgressMonitor
               job={activeJobDetails}
-              onCancel={handleCancelForecast} // Pass cancel handler
+              onCancel={handleCancelForecast}
               title={`Forecast: ${activeJobDetails.config?.scenario_name || activeJobDetails.id}`}
             />
           </Grid>
@@ -238,11 +214,11 @@ export const DemandProjection: React.FC = () => {
 
             <TabPanel value={currentTab} index={0}>
               <DataVisualization
-                sectorData={sectorData?.sample_data} // Assuming sectorData has this structure
+                sectorData={sectorData?.sample_data}
                 stats={sectorData?.statistics}
                 quality={sectorData?.data_quality}
                 isLoading={sectorLoading}
-                error={sectorError as any} // Cast error if type is complex
+                error={sectorError as any}
                 sector={selectedSector}
                 onRefresh={refetchSectorData}
               />
@@ -250,7 +226,7 @@ export const DemandProjection: React.FC = () => {
 
             <TabPanel value={currentTab} index={1}>
               <CorrelationAnalysis
-                correlationData={correlationData?.correlations} // Assuming this structure
+                correlationData={correlationData?.correlations}
                 isLoading={correlationLoading}
                 error={correlationError as any}
                 sector={selectedSector}
@@ -260,7 +236,6 @@ export const DemandProjection: React.FC = () => {
 
             <TabPanel value={currentTab} index={2}>
               <Typography variant="h6" gutterBottom>Forecast Results & Scenarios</Typography>
-              {/* This area will display results of completed forecasts, potentially from activeJobDetails.result or by fetching */}
               {activeJobDetails?.status === 'completed' && activeJobDetails.result ? (
                 <pre>{JSON.stringify(activeJobDetails.result, null, 2)}</pre>
               ) : (

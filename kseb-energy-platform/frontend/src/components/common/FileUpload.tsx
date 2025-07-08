@@ -68,7 +68,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
   const generateFileId = () => `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-  const getFileIcon = (fileType?: string): React.ReactElement => {
+  const getFileIcon = (fileType?: string): React.ReactElement => { // Ensure React is imported for React.ReactElement
     const type = fileType?.toLowerCase() || '';
     if (type.startsWith('image/')) return <ImageIcon color="primary" />;
     if (type.includes('excel') || type.includes('spreadsheetml')) return <Description sx={{color: 'success.main'}} />;
@@ -97,11 +97,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
     fileRejections.forEach(rejection => {
       const id = generateFileId();
-      // Check if we already have an error entry for this conceptual file (e.g. from previous drop attempt)
-      // This part is tricky without stable file IDs from browser before selection.
-      // For simplicity, we'll add a new error entry.
       newProcessedFiles.push({
-        file: rejection.file, // File object is available
+        file: rejection.file as File, // Cast FileWithPath to File
         id,
         status: 'error',
         error: `${rejection.errors[0].message} (Code: ${rejection.errors[0].code})`,
@@ -112,37 +109,45 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     acceptedDropFiles.forEach(file => {
       const id = generateFileId();
       newProcessedFiles.push({
-        file,
+        file: file as File, // Cast FileWithPath to File
         id,
-        status: 'pending', // Pending client-side validation or direct upload
+        status: 'pending',
         previewUrl: (showPreview && file.type.startsWith('image/')) ? URL.createObjectURL(file) : undefined,
       });
     });
 
-    // Filter out if maxFiles would be exceeded by new additions
-    const totalAfterAdd = uploadedFiles.length + newProcessedFiles.filter(f=>f.status !== 'error').length;
-    if (totalAfterAdd > maxFiles && maxFiles > 0) {
-        const limitErrorFile: UploadedFileMeta = {
-            file: new File([], "limit_error.txt"), // Dummy file
-            id: generateFileId(),
-            status: 'error',
-            error: `Cannot add more files. Maximum ${maxFiles} allowed. Already have ${uploadedFiles.length}.`,
-        };
-        // Add one error message for the batch that exceeded limit
-        newProcessedFiles = [limitErrorFile, ...newProcessedFiles.filter(f => f.status === 'error')];
-    } else {
-        // If within limits, update the main list
-        setUploadedFiles(prev => [...prev, ...newProcessedFiles]);
-    }
-    onFilesProcess([...uploadedFiles, ...newProcessedFiles]); // Notify parent about all files
+    const currentValidFileCount = uploadedFiles.filter(f => f.status !== 'error').length;
+    const newValidFiles = newProcessedFiles.filter(f => f.status !== 'error');
 
-  }, [uploadedFiles, maxFiles, onFilesProcess, showPreview]);
+    if (maxFiles > 0 && currentValidFileCount + newValidFiles.length > maxFiles) {
+        const numAllowedToAdd = maxFiles - currentValidFileCount;
+        const filesToAdd = newValidFiles.slice(0, numAllowedToAdd);
+        const filesToReject = newValidFiles.slice(numAllowedToAdd);
+
+        const finalNewFiles: UploadedFileMeta[] = [...newProcessedFiles.filter(f => f.status === 'error'), ...filesToAdd];
+
+        if (filesToReject.length > 0) {
+            finalNewFiles.push({
+                file: new File([], "limit_exceeded_error.txt"), // Dummy file
+                id: generateFileId(),
+                status: 'error',
+                error: `Cannot add all selected files. Maximum ${maxFiles} files allowed. You tried to add ${newValidFiles.length} on top of ${currentValidFileCount}.`,
+            });
+        }
+        setUploadedFiles(prev => [...prev, ...finalNewFiles]);
+        onFilesProcess([...uploadedFiles, ...finalNewFiles]);
+    } else {
+        setUploadedFiles(prev => [...prev, ...newProcessedFiles]);
+        onFilesProcess([...uploadedFiles, ...newProcessedFiles]); // Notify parent about all files
+    }
+
+  }, [uploadedFiles, maxFiles, onFilesProcess, showPreview, accept]); // Added accept to dependencies
 
   const { getRootProps, getInputProps, isDragActive, isFocused, isDragAccept, isDragReject } = useDropzone({
-    onDrop: processDroppedFiles,
+    onDrop: processDroppedFiles, // Renamed from onDrop to processDroppedFiles for clarity
     accept,
     maxSize,
-    maxFiles: multiple ? maxFiles : 1, // react-dropzone maxFiles applies to a single drop operation
+    maxFiles: multiple && maxFiles > 0 ? maxFiles : undefined, // Let our logic handle overall maxFiles if adding incrementally
     multiple,
     disabled: disabled || isGloballyUploading,
   });

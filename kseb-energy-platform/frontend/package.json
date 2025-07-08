@@ -16,9 +16,11 @@
     "react-scripts": "5.0.1",
     "socket.io-client": "^4.6.1",
     "typescript": "^4.9.5",
+    "web-vitals": "^2.1.4", // Already present, good.
     "plotly.js": "^2.20.0",
     "react-plotly.js": "^2.6.0",
-    "react-dropzone": "^14.2.3"
+    "react-dropzone": "^14.2.3",
+    "xlsx": "^0.18.5" // Added xlsx
   },
   "scripts": {
     "start": "react-scripts start",

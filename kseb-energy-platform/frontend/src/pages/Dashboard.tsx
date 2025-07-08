@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Paper, Grid, Container } from '@mui/material';
-import { BarChart, LineChart, PieChart } from '@mui/icons-material'; // Example icons
+import { BarChart, PieChart, ShowChart as LineIcon } from '@mui/icons-material'; // Replaced LineChart with LineIcon (ShowChart)
 
 const Dashboard: React.FC = () => {
   return (
@@ -21,7 +21,7 @@ const Dashboard: React.FC = () => {
         {/* Example Stat Card 2 */}
         <Grid item xs={12} sm={6} md={3}>
           <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
-            <LineChart color="secondary" sx={{ fontSize: 40, mb: 1 }} />
+            <LineIcon color="secondary" sx={{ fontSize: 40, mb: 1 }} />
             <Typography variant="h6">Forecasts Ran</Typography>
             <Typography variant="h3" component="p">27</Typography>
             <Typography color="text.secondary">Last 30 days</Typography>

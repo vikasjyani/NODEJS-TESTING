@@ -1,20 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Grid, Chip, CircularProgress, Alert } from '@mui/material';
-import { CheckCircleOutline, ErrorOutline, Dns, Memory, Storage, Speed } from '@mui/icons-material';
+import { Box, Typography, Paper, Grid, Chip, CircularProgress as MuiCircularProgress, Alert } from '@mui/material'; // Renamed CircularProgress
+import { CheckCircleOutline, ErrorOutline, Dns, Memory, Storage, Speed, CloudQueue } from '@mui/icons-material'; // Added CloudQueue
 // import { useGetBackendStatusQuery } // If backend status is fetched via RTK Query
+
+type SolverStatusValue = 'loading' | 'ok' | 'not_found' | 'error'; // Define type for solver status values
 
 interface SystemStatusData {
   backendStatus: 'loading' | 'healthy' | 'unhealthy' | 'error';
-  pythonEnvStatus: 'loading' | 'ok' | 'misconfigured' | 'error'; // Status of Python environment/dependencies
-  solverStatus: Record<string, 'ok' | 'not_found' | 'error'>; // e.g., { highs: 'ok', gurobi: 'not_found' }
+  pythonEnvStatus: 'loading' | 'ok' | 'misconfigured' | 'error';
+  solverStatus: Record<string, SolverStatusValue>; // Use defined type
   // Add other relevant system metrics if available, e.g., disk space
 }
+
+type StatusLabel = 'loading' | 'healthy' | 'unhealthy' | 'ok' | 'misconfigured' | 'not_found' | 'error' | 'Checking...' | 'OK' | 'Error' | 'Misconfigured' | 'Not Found';
+
 
 export const SystemStatus: React.FC = () => {
   const [status, setStatus] = useState<SystemStatusData>({
     backendStatus: 'loading',
     pythonEnvStatus: 'loading',
-    solverStatus: { highs: 'loading', gurobi: 'loading', cplex: 'loading' },
+    solverStatus: { highs: 'loading', gurobi: 'loading', cplex: 'loading' }, // This is now valid
   });
 
   // In a real app, this data would come from an API call or Electron IPC
@@ -37,47 +42,51 @@ export const SystemStatus: React.FC = () => {
 
   const renderStatusChip = (
     componentName: string,
-    currentStatus: 'loading' | 'healthy' | 'ok' | 'unhealthy' | 'misconfigured' | 'not_found' | 'error',
+    currentStatus: SystemStatusData['backendStatus'] | SystemStatusData['pythonEnvStatus'] | SolverStatusValue, // Use combined types
     icon?: React.ReactElement
   ) => {
     let color: 'default' | 'success' | 'warning' | 'error' | 'info' = 'default';
-    let label = currentStatus;
-    let displayIcon = icon || <Dns />;
+    let labelText: StatusLabel = currentStatus as StatusLabel; // Cast to broader StatusLabel type initially
+    let displayIcon = icon || <CloudQueue />; // Default to CloudQueue
 
     switch (currentStatus) {
       case 'loading':
         color = 'info';
-        label = 'Checking...';
-        displayIcon = <CircularProgress size={16} color="inherit"/>;
+        labelText = 'Checking...';
+        displayIcon = <MuiCircularProgress size={16} color="inherit"/>; // Use aliased import
         break;
       case 'healthy':
       case 'ok':
         color = 'success';
-        label = 'OK';
+        labelText = 'OK';
         displayIcon = icon || <CheckCircleOutline />;
         break;
       case 'unhealthy':
       case 'error':
         color = 'error';
-        label = 'Error';
+        labelText = 'Error';
         displayIcon = icon || <ErrorOutline />;
         break;
       case 'misconfigured':
         color = 'warning';
-        label = 'Misconfigured';
+        labelText = 'Misconfigured';
         displayIcon = icon || <ErrorOutline />;
         break;
       case 'not_found':
          color = 'default';
-         label = 'Not Found';
+         labelText = 'Not Found';
          displayIcon = icon || <ErrorOutline sx={{color: 'text.disabled'}}/>;
+        break;
+      default: // Should not be reached if types are correct
+        color = 'default';
+        labelText = 'Unknown';
         break;
     }
 
     return (
       <Chip
         avatar={displayIcon}
-        label={`${componentName}: ${label.charAt(0).toUpperCase() + label.slice(1)}`}
+        label={`${componentName}: ${labelText.charAt(0).toUpperCase() + labelText.slice(1)}`}
         color={color}
         variant="outlined"
         size="small"

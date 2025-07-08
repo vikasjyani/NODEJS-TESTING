@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
-    "dev": "concurrently \\"npm:dev:backend\\" \\"npm:dev:frontend\\" \\"wait-on http://localhost:5000 http://localhost:3000 && npm:dev:electron\\"",
+    "dev": "concurrently --kill-others \"npm run dev --workspace=backend\" \"npm start --workspace=frontend\" \"wait-on http://localhost:5000 http://localhost:3000 && npm run dev --workspace=electron\"",
     "dev:backend": "npm run dev --workspace=backend",
     "dev:frontend": "npm start --workspace=frontend",
     "dev:electron": "npm run dev --workspace=electron",
