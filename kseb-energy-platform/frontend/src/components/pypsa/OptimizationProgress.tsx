@@ -34,7 +34,7 @@ export const OptimizationProgress: React.FC<OptimizationProgressProps> = ({
     return null;
   }
 
-  const getStatusColor = (): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
+  const getStatusColor = (): "primary" | "secondary" | "error" | "info" | "success" | "warning" => { // Removed "default"
     switch (job.status) {
       case 'completed': return 'success';
       case 'failed': return 'error';
@@ -139,9 +139,14 @@ export const OptimizationProgress: React.FC<OptimizationProgressProps> = ({
 
 // Helper for CircularProgress with label
 function CircularProgressWithLabel(props: { value: number, size?: number }) {
+  // Assuming MuiCircularProgress is imported in the scope where this function is used,
+  // or it should be passed as a prop or imported directly here if this is a standalone util.
+  // For this component, MuiCircularProgress should be available from the component's imports.
   return (
     <Box sx={{ position: 'relative', display: 'inline-flex', alignItems:'center', justifyContent:'center' }}>
-      <CircularProgress variant="determinate" {...props} />
+      <MuiCircularProgress variant="determinate" {...props} />
     </Box>
   );
 }
+// If MuiCircularProgress is not in scope, this would need:
+// import { CircularProgress as MuiCircularProgress } from '@mui/material';

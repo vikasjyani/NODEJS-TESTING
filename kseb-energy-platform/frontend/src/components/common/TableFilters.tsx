@@ -39,7 +39,8 @@ export interface CategoryFilter extends BaseFilter {
     selectedValues?: string[];
 }
 
-
+// Ensure ActiveFilter is also exported if it's used elsewhere, or if it's only internal to useTableData, it's fine.
+// For safety, let's export it too.
 export type ActiveFilter = TextFilter | NumberRangeFilter | DateRangeFilter | BooleanFilter | CategoryFilter;
 
 interface TableFiltersProps<T> {

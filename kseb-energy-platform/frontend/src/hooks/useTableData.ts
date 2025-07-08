@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Column } from '../components/common/DataTable'; // Assuming DataTable exports Column type
-import { ActiveFilter } from '../components/common/TableFilters'; // Assuming TableFilters exports ActiveFilter type
+import { ActiveFilter, TextFilter, NumberRangeFilter, DateRangeFilter, BooleanFilter, CategoryFilter } from '../components/common/TableFilters'; // Added specific filter types
 
 // This type would be more specific based on your actual API response structure
 export type RawApiDataRow = Record<string, any>;

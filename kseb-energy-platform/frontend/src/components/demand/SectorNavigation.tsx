@@ -65,7 +65,7 @@ export const SectorNavigation: React.FC<SectorNavigationProps> = ({
               value={sector.id}
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  {sector.icon && React.cloneElement(sector.icon, { sx: { mr: 1 }})}
+                  {sector.icon && React.cloneElement(sector.icon as React.ReactElement<any>, { sx: { mr: 1 } })}
                   {sector.label}
                   <Tooltip title={tooltipTitle} placement="top" arrow>
                     <Chip

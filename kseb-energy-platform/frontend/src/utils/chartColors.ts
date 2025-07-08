@@ -95,21 +95,22 @@ export const getThemeAwareChartColors = (theme: Theme) => {
 };
 
 // Function to generate a Plotly colorscale from an array of colors
-export const generatePlotlyColorscale = (colors: string[]): Plotly.ColorScale => {
-    const scale: Plotly.ColorScale = [];
-    const step = 1 / (colors.length - 1);
+// Plotly.ColorScale is typically Array<[number, string] | string>
+// We are generating the [number, string] array format.
+export const generatePlotlyColorscale = (colors: string[]): Array<[number, string]> => {
+    if (colors.length === 0) return [];
+    if (colors.length === 1) return [[0, colors[0]], [1, colors[0]]]; // Single color spans whole scale
+
+    const scale: Array<[number, string]> = [];
+    const step = 1.0 / (colors.length - 1);
     colors.forEach((color, i) => {
         scale.push([i * step, color]);
     });
-    // Ensure first step is 0 and last is 1 if not perfectly divided
-    if (scale.length > 0) {
-        scale[0][0] = 0;
-        scale[scale.length - 1][0] = 1;
-    }
+    // The calculation of step should ensure scale[0][0] is 0 and scale[last][0] is 1.
     return scale;
 };
 
-export const DEFAULT_PLOTLY_COLORS = QUALITATIVE_COLORS; // Plotly's default is similar
+export const DEFAULT_PLOTLY_COLORS = QUALITATIVE_COLORS;
 
 // Example Plotly colorscales that can be used directly
 export const PLOTLY_COLORSCALES = {

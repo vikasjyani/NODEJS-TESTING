@@ -33,14 +33,14 @@ export const GenerationProgress: React.FC<GenerationProgressProps> = ({
     return null;
   }
 
-  const getStatusColor = (): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
+  const getStatusColor = (): "primary" | "secondary" | "error" | "info" | "success" | "warning" => { // Removed "default"
     switch (job.status) {
       case 'completed': return 'success';
       case 'failed': return 'error';
       case 'cancelled': return 'warning';
       case 'running': return 'primary';
       case 'queued': return 'info';
-      default: return 'default';
+      default: return 'primary'; // Default to primary if somehow another status comes
     }
   };
 
@@ -135,9 +135,12 @@ export const GenerationProgress: React.FC<GenerationProgressProps> = ({
 
 // Helper for CircularProgress with label (if needed inside chip)
 function CircularProgressWithLabel(props: { value: number, size?: number }) {
+  // Assuming MuiCircularProgress is imported in the main component scope that uses this helper
   return (
     <Box sx={{ position: 'relative', display: 'inline-flex', alignItems:'center', justifyContent:'center' }}>
-      <CircularProgress variant="determinate" {...props} />
+      <MuiCircularProgress variant="determinate" {...props} />
     </Box>
   );
 }
+// If MuiCircularProgress is not in scope, this would need:
+// import { CircularProgress as MuiCircularProgress } from '@mui/material';
