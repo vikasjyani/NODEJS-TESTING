@@ -8,19 +8,18 @@ import {
 import { PlayArrow, StopCircle, Settings, Assessment, BarChart, Timeline, Insights, Storage } from '@mui/icons-material';
 
 import { RootState } from '../store';
-import { useAppDispatch } from '../store/hooks'; // Corrected import
+import { useAppDispatch } from '../store/hooks';
 import {
   useGetSectorDataQuery,
   useRunForecastMutation,
   useGetCorrelationDataQuery,
-  // useGetForecastStatusQuery,
 } from '../store/api/apiSlice';
 import { useForecastNotifications } from '../services/websocket';
 import { SectorNavigation, SectorQualityData, QualityColor } from '../components/demand/SectorNavigation';
 import { DataVisualization } from '../components/demand/DataVisualization';
 import { CorrelationAnalysis } from '../components/demand/CorrelationAnalysis';
 import { ForecastConfiguration, ForecastConfigData } from '../components/demand/ForecastConfiguration';
-import { ProgressMonitor } from '../components/demand/ProgressMonitor'; // Corrected/verified path
+import { ProgressMonitor } from '../components/demand/ProgressMonitor';
 import { addNotification } from '../store/slices/notificationSlice';
 
 interface TabPanelProps {

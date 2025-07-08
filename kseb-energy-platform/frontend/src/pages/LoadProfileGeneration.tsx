@@ -5,24 +5,23 @@ import {
   Stepper, Step, StepLabel, StepContent, Alert, Chip, Dialog, DialogTitle, DialogContent, CircularProgress
 } from '@mui/material';
 import {
-  Timeline, TrendingUp, CloudUpload, PlayArrow, Visibility, ListAlt, SettingsApplications, BarChart
-} from '@mui/icons-material';
+  Timeline, TrendingUp, CloudUpload, PlayArrow, Visibility, ListAlt, SettingsApplications
+} from '@mui/icons-material'; // Removed BarChart as it's not used here directly
 
-import { RootState } from '../store'; // Corrected
-import { useAppDispatch } from '../store/hooks'; // Corrected
+import { RootState } from '../store';
+import { useAppDispatch } from '../store/hooks';
 import {
   useGenerateProfileMutation,
   useGetSavedProfilesQuery,
-  // useUploadFileMutation
-} from '../store/api/apiSlice'; // Corrected
-import { useProfileNotifications } from '../services/websocket'; // Corrected
-import { MethodSelection, GenerationMethod } from '../components/loadProfile/MethodSelection'; // Corrected
-import { ConfigurationForm, ProfileConfigData } from '../components/loadProfile/ConfigurationForm'; // Corrected
-import { TemplateUpload } from '../components/loadProfile/TemplateUpload'; // Corrected
-import { ProfilePreview } from '../components/loadProfile/ProfilePreview'; // Corrected
-import { ProfileManager } from '../components/loadProfile/ProfileManager'; // Corrected
-import { GenerationProgress } from '../components/loadProfile/GenerationProgress'; // Corrected
-import { addNotification } from '../store/slices/notificationSlice'; // Corrected
+} from '../store/api/apiSlice';
+import { useProfileNotifications } from '../services/websocket';
+import { MethodSelection, GenerationMethod } from '../components/loadProfile/MethodSelection';
+import { ConfigurationForm, ProfileConfigData } from '../components/loadProfile/ConfigurationForm';
+import { TemplateUpload } from '../components/loadProfile/TemplateUpload';
+import { ProfilePreview } from '../components/loadProfile/ProfilePreview';
+import { ProfileManager } from '../components/loadProfile/ProfileManager';
+import { GenerationProgress } from '../components/loadProfile/GenerationProgress';
+import { addNotification } from '../store/slices/notificationSlice';
 
 interface GenerationStep {
   label: string;
@@ -81,7 +80,7 @@ export const LoadProfileGeneration: React.FC = () => {
   const isStepCompleted = (stepIndex: number): boolean => {
     if (stepIndex < activeStep) return true;
     if (stepIndex === 0) return !!selectedMethod;
-    if (stepIndex === 1) return !!selectedMethod && Object.keys(generationConfig).length > 0;
+    if (stepIndex === 1) return !!selectedMethod && (selectedMethod.requiresConfig === false || Object.keys(generationConfig).length > 0);
     if (stepIndex === 2) {
         if (selectedMethod?.requiresTemplateUpload && !templateFileUploaded) return false;
         return true;
@@ -98,15 +97,35 @@ export const LoadProfileGeneration: React.FC = () => {
 
   const handleConfigurationComplete = (config: ProfileConfigData) => {
     setGenerationConfig(config);
-    setActiveStep(2);
+    // Only auto-advance if data upload is not required by the method, or if it's already handled
+    if (!selectedMethod?.requiresTemplateUpload) {
+        setActiveStep(3); // Skip to Review & Generate
+    } else {
+        setActiveStep(2); // Move to Data Upload
+    }
   };
 
-  const handleDataValidated = (fileUploaded: boolean) => {
+  const handleDataValidated = (fileUploaded: boolean, filePath?: string) => {
     setTemplateFileUploaded(fileUploaded);
+    if (fileUploaded && filePath) {
+        // If a file path is returned (e.g. from server after upload), store it in config
+        setGenerationConfig(prev => ({...prev, customTemplatePath: filePath}));
+    }
+    // Potentially auto-advance if this step is now complete
+    // setActiveStep(3); // Or let user click Next
   };
 
   const handleNext = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    // Special handling for skipping optional data upload step
+    if (activeStep === 1 && selectedMethod && !selectedMethod.requiresTemplateUpload && !selectedMethod.requiresConfig) {
+        // If config was also not required and method selected, can skip to review
+         setActiveStep(3); // Skip to Review & Generate
+    } else if (activeStep === 1 && selectedMethod && !selectedMethod.requiresTemplateUpload && selectedMethod.requiresConfig && Object.keys(generationConfig).length > 0) {
+        setActiveStep(3); // Skip to Review & Generate
+    }
+    else {
+        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    }
   };
 
   const handleBack = () => {
@@ -114,8 +133,17 @@ export const LoadProfileGeneration: React.FC = () => {
   };
 
   const handleStepClick = (stepIndex: number) => {
-    if (isStepCompleted(stepIndex) || stepIndex < activeStep) {
+    // Allow navigation to any previous step, or current step if prerequisites met
+    if (stepIndex < activeStep || isStepCompleted(stepIndex-1) || stepIndex === 0) {
+         // If going back to step 0, reset method and config
+        if(stepIndex === 0 && activeStep > 0) {
+            // setSelectedMethod(null); // Keep method selected to avoid re-showing selection unless user explicitly changes
+            // setGenerationConfig({});
+            // setTemplateFileUploaded(false);
+        }
       setActiveStep(stepIndex);
+    } else {
+        dispatch(addNotification({type: 'info', message: `Please complete step ${activeStep +1} first.`}))
     }
   };
 
@@ -129,11 +157,19 @@ export const LoadProfileGeneration: React.FC = () => {
          dispatch(addNotification({type: 'error', message: 'Please complete the configuration for the selected method.'}));
         return;
     }
+    if (selectedMethod.requiresTemplateUpload && !templateFileUploaded) {
+        dispatch(addNotification({type: 'error', message: 'A template file is required for this method.'}));
+        return;
+    }
 
-    const finalConfig = {
+
+    const finalConfig: any = { // Cast to any or define a more encompassing type for submission
       method: selectedMethod.id,
       ...generationConfig,
     };
+    // If templateFileUploaded and a path was stored (e.g., from a server upload response)
+    // finalConfig.templateFilePath = (generationConfig as any).customTemplatePath;
+
 
     try {
       const response = await generateProfile(finalConfig).unwrap();
@@ -218,11 +254,11 @@ export const LoadProfileGeneration: React.FC = () => {
                     <StepLabel
                       onClick={() => handleStepClick(index)}
                       icon={step.icon}
-                      sx={{ cursor: (isStepCompleted(index) || index < activeStep) ? 'pointer' : 'default', mb:1 }}
+                      sx={{ cursor: (isStepCompleted(index) || index < activeStep || index === 0) ? 'pointer' : 'default', mb:1 }}
                     >
                       <Typography variant="subtitle1">{step.label}</Typography>
                     </StepLabel>
-                    <StepContent sx={{borderLeft: (theme) => `1px solid ${theme.palette.divider}`, ml:1.5, pl:2, pb:2}}>
+                    <StepContent sx={{borderLeft: (theme) => `1px solid ${theme.palette.divider}`, ml: ((step.icon as any)?.type?.muiName === 'SvgIcon' ? 1.5 : 0) + (step.icon ? 1.5 : 0), pl:2, pb:2}}> {/* Adjust margin based on icon presence */}
                       <Typography variant="body2" color="text.secondary" gutterBottom>
                         {step.description}
                       </Typography>
@@ -250,12 +286,10 @@ export const LoadProfileGeneration: React.FC = () => {
                       {index === 3 && selectedMethod && (
                         <Box>
                           <Typography variant="subtitle2" gutterBottom>Review Configuration:</Typography>
-                          <Paper variant="outlined" sx={{p:2, mb:2, maxHeight: 200, overflowY:'auto'}}>
-                            <pre style={{margin:0, fontSize:'0.8rem'}}>
-                                Method: {selectedMethod.name}\n
-                                {JSON.stringify(generationConfig, null, 2)}
-                                {templateFileUploaded ? "\nCustom template uploaded." : ""}
-                            </pre>
+                          <Paper variant="outlined" sx={{p:2, mb:2, maxHeight: 200, overflowY:'auto', whiteSpace:'pre-wrap', wordBreak:'break-all', bgcolor:'action.hover'}}>
+                                {`Method: ${selectedMethod.name}\n`}
+                                {`Config: ${JSON.stringify(generationConfig, null, 2)}\n`}
+                                {templateFileUploaded ? "Custom template has been processed." : "Using default/no template."}
                           </Paper>
                           <Button
                             variant="contained"
@@ -277,9 +311,14 @@ export const LoadProfileGeneration: React.FC = () => {
                           <Button
                             variant="contained"
                             onClick={index === WIZARD_STEPS.length - 1 ? handleStartGeneration : handleNext}
-                            disabled={!isStepCompleted(index) || (index === WIZARD_STEPS.length - 1 && (startingGeneration || activeJobDetails?.status === 'running'))}
+                            // Disable Next if current step is not completed, unless it's the method selection step
+                            disabled={
+                                !(index === 0 && selectedMethod) && // For step 0, only need method selected to enable Next
+                                !(index > 0 && isStepCompleted(index)) && // For other steps, they must be "completed"
+                                !(index === WIZARD_STEPS.length - 1) // Generate button has its own disabled logic
+                            }
                           >
-                            {index === WIZARD_STEPS.length - 1 ? 'Generate' : 'Next'}
+                            {index === WIZARD_STEPS.length - 1 ? (startingGeneration ? 'Processing...' : 'Generate') : 'Next'}
                           </Button>
                         </div>
                       </Box>
@@ -291,7 +330,7 @@ export const LoadProfileGeneration: React.FC = () => {
                  <Box sx={{textAlign: 'center', p:3}}>
                     <Typography variant="h5">Profile Generation In Progress</Typography>
                     <Typography>Monitoring job: {activeJobDetails?.id || currentProfileJobId}</Typography>
-                    <Button onClick={() => { setActiveStep(0); setCurrentProfileJobId(null); }} sx={{mt:2}}>
+                    <Button onClick={() => { setActiveStep(0); setCurrentProfileJobId(null); setSelectedMethod(null); setGenerationConfig({}); setTemplateFileUploaded(false); }} sx={{mt:2}}>
                         Start New Generation
                     </Button>
                  </Box>
@@ -314,7 +353,9 @@ export const LoadProfileGeneration: React.FC = () => {
       <Dialog open={previewDialogOpen} onClose={() => setPreviewDialogOpen(false)} maxWidth="lg" fullWidth>
         <DialogTitle>Base Data Preview</DialogTitle>
         <DialogContent>
-          <ProfilePreview />
+          <ProfilePreview
+            selectedMethodId={selectedMethod?.id}
+          />
         </DialogContent>
       </Dialog>
     </Container>

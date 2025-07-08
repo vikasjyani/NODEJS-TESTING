@@ -102,14 +102,10 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
         <Grid item xs={12} md={stats?.columns && stats.columns.length > 3 ? 7 : 12}>
           <Paper sx={{ p: 2, height: 400 }}>
             <LineChart
-              data={[{
-                x: years,
-                y: demandValues,
-                type: 'scatter',
-                mode: 'lines+markers',
-                name: 'Demand (GWh)',
-                marker: { color: 'primary.main' }
-              }]}
+              xData={years}
+              yData={demandValues}
+              names={['Demand (GWh)']}
+              colors={['primary.main']}
               layout={{ title: {text: `Annual Demand Trend - ${sector}`} , xaxis: {title: {text: 'Year'}}, yaxis: {title: {text: 'Demand (GWh)'}}}}
               loading={isLoading}
             />
@@ -121,7 +117,10 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
             {gdpValues.length > 0 && (
               <Paper sx={{ p: 2, height: populationValues.length > 0 ? 190: 400, mb: populationValues.length > 0 ? 2 : 0 }}>
                 <BarChart
-                  data={[{ x: years, y: gdpValues, type: 'bar', name: 'GDP Indicator', marker: {color: 'secondary.main'} }]}
+                  xData={years}
+                  yData={gdpValues}
+                  names={['GDP Indicator']}
+                  colors={['secondary.main']}
                   layout={{ title: {text: 'GDP Trend'}, height: populationValues.length > 0 ? 170: 380, yaxis: {title: {text: 'GDP (Indicator)'}} }}
                   loading={isLoading}
                 />
@@ -130,7 +129,10 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
             {populationValues.length > 0 && (
               <Paper sx={{ p: 2, height: gdpValues.length > 0 ? 190: 400 }}>
                 <BarChart
-                  data={[{ x: years, y: populationValues, type: 'bar', name: 'Population Indicator', marker: {color: 'success.main'} }]}
+                  xData={years}
+                  yData={populationValues}
+                  names={['Population Indicator']}
+                  colors={['success.main']}
                   layout={{ title: {text: 'Population Trend'}, height: gdpValues.length > 0 ? 170: 380, yaxis: {title: {text: 'Population (Indicator)'}} }}
                   loading={isLoading}
                 />

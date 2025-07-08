@@ -1,27 +1,27 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Box, Tooltip, Avatar } from '@mui/material';
+import { AppBar, Toolbar, Typography, IconButton, Box, Tooltip, PaletteMode, Avatar } from '@mui/material'; // Added PaletteMode
 import { Menu as MenuIcon, Brightness4, Brightness7, Notifications, AccountCircle, Settings, ExitToApp } from '@mui/icons-material';
+// Removed useTheme as mode comes from props now
 
 interface HeaderProps {
   onToggleTheme: () => void;
-  sidebarWidth: number; // To handle content shift if sidebar is part of layout under header
-  onDrawerToggle?: () => void; // For mobile drawer toggle
+  currentThemeMode: PaletteMode; // Added prop to receive current theme mode
+  sidebarWidth: number;
+  onDrawerToggle?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onToggleTheme, sidebarWidth, onDrawerToggle }) => {
-  const currentThemeMode = 'light'; // This would ideally come from theme context or Redux
+export const Header: React.FC<HeaderProps> = ({ onToggleTheme, currentThemeMode, sidebarWidth, onDrawerToggle }) => {
+  // const theme = useTheme(); // No longer needed if mode is passed as prop
+  // const currentThemeMode = theme.palette.mode;
 
   return (
     <AppBar
       position="fixed"
       sx={{
-        zIndex: (theme) => theme.zIndex.drawer + 1, // Ensure header is above sidebar
-        // width: { sm: `calc(100% - ${sidebarWidth}px)` }, // Adjust width if sidebar is persistent
-        // ml: { sm: `${sidebarWidth}px` }, // Adjust margin if sidebar is persistent
+        zIndex: (theme) => theme.zIndex.drawer + 1,
       }}
     >
       <Toolbar>
-        {/* Hamburger Icon for mobile (optional, if sidebar is toggleable on mobile) */}
         {onDrawerToggle && (
             <IconButton
               color="inherit"
@@ -51,14 +51,11 @@ export const Header: React.FC<HeaderProps> = ({ onToggleTheme, sidebarWidth, onD
             </IconButton>
           </Tooltip>
 
-          {/* User Menu (Placeholder) */}
           <Tooltip title="User Account">
             <IconButton sx={{ ml: 1 }} color="inherit">
               <AccountCircle />
-              {/* <Avatar sx={{ width: 32, height: 32 }}>U</Avatar> */}
             </IconButton>
           </Tooltip>
-           {/* Can add a Menu component here for dropdown options like Profile, Settings, Logout */}
         </Box>
       </Toolbar>
     </AppBar>
